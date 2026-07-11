@@ -1,0 +1,244 @@
+# PRODUCT REQUIREMENT DOCUMENT
+
+## Dashboard MAN 1 Bandar Lampung — EMIS & SIMPEG
+
+Versi: 1.0  
+Status: Implementasi awal  
+Tanggal: 11 Juli 2026
+
+## 1. Ringkasan
+
+Dashboard MAN 1 Bandar Lampung adalah aplikasi web untuk menyajikan data inti
+madrasah dalam satu tampilan yang ringkas, visual, dan dapat dikelola. Versi
+pertama dibatasi pada dua sumber utama:
+
+1. **EMIS** untuk rekap dan profil sekolah serta peserta didik.
+2. **SIMPEG** untuk profil dan statistik ASN/Guru dan Tenaga Kependidikan.
+
+Dashboard memiliki tiga permukaan yang memakai sumber data yang sama:
+
+- dashboard publik;
+- panel admin terautentikasi;
+- slideshow/presentation mode untuk layar pimpinan.
+
+## 2. Tujuan
+
+- Menyediakan ringkasan profil MAN 1 Bandar Lampung yang cepat dipahami.
+- Menampilkan rekap siswa tanpa membuka laporan EMIS mentah.
+- Menampilkan profil dan komposisi ASN/GTK dari SIMPEG.
+- Menyediakan fondasi integrasi API resmi tanpa menaruh token di browser.
+- Menyediakan pengelolaan data melalui panel admin.
+- Menjaga dashboard, admin, dan slideshow tetap konsisten karena memakai database yang sama.
+
+## 3. Pengguna
+
+| Pengguna | Kebutuhan |
+| --- | --- |
+| Pimpinan madrasah | Ringkasan cepat untuk monitoring dan rapat |
+| Tim data/operator | Validasi dan pemutakhiran data EMIS/SIMPEG |
+| Admin | Mengelola indikator, tabel, profil, publikasi, dan kontak |
+| Publik | Melihat profil dan statistik madrasah yang telah divalidasi |
+
+## 4. Ruang Lingkup Versi Pertama
+
+### 4.1 Modul EMIS
+
+- Identitas sekolah: nama, NPSN, NSM, status, akreditasi, dan alamat.
+- Total peserta didik.
+- Rekap kelas X, XI, dan XII.
+- Rekap gender.
+- Jumlah rombongan belajar.
+- Label sumber dan status validasi data.
+
+### 4.2 Modul SIMPEG
+
+- Total Guru dan Tenaga Kependidikan.
+- Total ASN.
+- Komposisi PNS, PPPK, dan non-ASN.
+- Kualifikasi pendidikan terakhir.
+- Jumlah ASN tersertifikasi.
+- Profil pimpinan dan beberapa ASN terpilih dengan foto.
+
+### 4.3 Panel Admin
+
+- Daftar/masuk/keluar dengan Better Auth.
+- Mengubah indikator dan tabel data.
+- Mengunggah CSV, Excel, PDF, DOC, atau DOCX sebagai draft data.
+- Mengelola dataset, jadwal rilis, profil/foto, publikasi, dan kontak.
+- Menyimpan perubahan ke API dashboard.
+- Ekspor JSON untuk cadangan.
+- Perubahan API wajib memiliki sesi admin.
+
+### 4.4 Slideshow
+
+- Ringkasan umum.
+- Slide EMIS.
+- Slide SIMPEG.
+- Slide profil ASN.
+- Putar otomatis, jeda, navigasi, dan layar penuh.
+- Mengambil data dari endpoint dashboard yang sama.
+
+## 5. Di Luar Ruang Lingkup Saat Ini
+
+- Sinkronisasi produksi dengan API EMIS/SIMPEG sebelum endpoint dan kredensial resmi tersedia.
+- Penggajian, absensi rinci, SKP, dan data pribadi sensitif ASN.
+- Portal siswa/orang tua.
+- Pembayaran dan layanan akademik transaksional.
+- Aplikasi mobile native.
+
+## 6. Arsitektur
+
+### Frontend
+
+- Next.js 15 App Router
+- React 19 dan TypeScript
+- Tailwind CSS dengan tema Apple-inspired liquid glass
+- Recharts
+- Lucide icons
+
+### Backend
+
+- Next.js Route Handlers pada runtime Node.js
+- Drizzle ORM
+- Better Auth dengan email dan password
+- API terproteksi untuk perubahan dashboard dan unggah file
+- Adapter upstream untuk EMIS dan SIMPEG
+
+### Database
+
+- Turso/libSQL sebagai database online.
+- SQLite lokal sebagai fallback pengembangan.
+- Skema yang sama dipakai Better Auth dan konten dashboard.
+- Seed idempoten ketika database kosong.
+
+## 7. Alur Data
+
+```text
+EMIS API ------\
+                > Adapter server -> Turso/libSQL -> Dashboard publik
+SIMPEG API ----/                         |-------> Slideshow
+                                         |-------> Panel admin
+```
+
+Jika API upstream belum dikonfigurasi, endpoint integrasi membaca fallback dari
+database dashboard dan memberi status `fallback`.
+
+## 8. Endpoint
+
+| Method | Endpoint | Akses | Fungsi |
+| --- | --- | --- | --- |
+| GET | `/api/dashboard` | Publik | Mengambil seluruh data dashboard |
+| PUT | `/api/dashboard` | Admin | Menyimpan snapshot dashboard |
+| POST | `/api/dashboard/import` | Admin | Membaca file rekap menjadi draft data |
+| POST | `/api/dashboard/files` | Admin | Menyimpan file yang diunggah |
+| GET | `/api/integrations/emis` | Publik | Adapter/fallback EMIS |
+| GET | `/api/integrations/simpeg` | Publik | Adapter/fallback SIMPEG |
+| ALL | `/api/auth/[...all]` | Sesuai Better Auth | Login dan sesi admin |
+
+## 9. Model Data
+
+### Indikator
+
+- id
+- nama
+- deskripsi
+- kategori (`EMIS` atau `SIMPEG`)
+- satuan
+- sumber
+- tahun
+- nilai
+- status validasi
+
+### Baris Data
+
+- indikator
+- kategori
+- unit kerja
+- periode
+- tahun
+- nilai
+- satuan
+- sumber
+
+### Profil ASN
+
+Pada versi awal profil menggunakan tabel aktivitas agar dapat dikelola melalui
+panel konten yang sudah stabil. Pemetaan field:
+
+- `title` = nama ASN;
+- `caption` = jabatan;
+- `imageUrl` = foto.
+
+Migrasi ke tabel profil khusus dapat dilakukan ketika kontrak SIMPEG resmi telah
+ditetapkan.
+
+## 10. Autentikasi dan Keamanan
+
+- Better Auth menyimpan user, account, session, dan verification di database.
+- Perubahan data, impor, dan unggah file memerlukan sesi valid.
+- Token Turso, EMIS, dan SIMPEG hanya tersedia pada environment server.
+- File `.env.local` tidak masuk Git.
+- Secret pengembangan wajib diganti sebelum produksi.
+- Data sensitif ASN tidak ditampilkan pada dashboard publik.
+
+## 11. Status Validitas Data
+
+Data berikut bersumber dari profil resmi madrasah:
+
+- nama dan alamat sekolah;
+- NPSN dan NSM;
+- status dan akreditasi;
+- total siswa dan guru pada profil resmi;
+- nama, jabatan, dan foto pejabat yang ditampilkan.
+
+Rincian tingkat, gender, rombel, status ASN, pendidikan, dan sertifikasi pada
+versi awal adalah data contoh. UI wajib menampilkan peringatan sampai data
+tersebut telah divalidasi atau API produksi aktif.
+
+## 12. Kebutuhan Fungsional
+
+| Kode | Kebutuhan | Prioritas |
+| --- | --- | --- |
+| FR-01 | Menampilkan dashboard publik | Tinggi |
+| FR-02 | Menampilkan modul EMIS | Tinggi |
+| FR-03 | Menampilkan modul SIMPEG | Tinggi |
+| FR-04 | Menampilkan profil ASN dengan foto | Tinggi |
+| FR-05 | Menampilkan grafik dan tabel | Tinggi |
+| FR-06 | Menampilkan sumber dan status data | Tinggi |
+| FR-07 | Menampilkan slideshow dari data dashboard | Tinggi |
+| FR-08 | Login admin | Tinggi |
+| FR-09 | Admin menyimpan perubahan ke database | Tinggi |
+| FR-10 | Admin mengimpor file rekap | Sedang |
+| FR-11 | Adapter API EMIS/SIMPEG | Tinggi |
+| FR-12 | Kontak dan peta madrasah | Sedang |
+
+## 13. Kebutuhan Non-Fungsional
+
+- Responsif untuk desktop, tablet, dan telepon.
+- Tampilan liquid glass dengan kontras dan keterbacaan yang baik.
+- Backend berjalan pada Node.js.
+- Database dapat dipindahkan dari SQLite ke Turso tanpa mengubah komponen UI.
+- Build, lint, dan route utama harus lulus sebelum rilis.
+- Slideshow mendukung layar penuh dan reduced motion.
+
+## 14. Kriteria Penerimaan Versi Pertama
+
+- Proyek berada di folder `Dashboard_MAN_1` dan dapat dijalankan lokal.
+- Halaman `/` menampilkan dua modul inti dan data dari database.
+- Halaman `/slideshow` memakai data yang sama dengan dashboard.
+- Halaman `/admin` menggunakan Better Auth.
+- `PUT /api/dashboard`, impor, dan unggah menolak pengguna tanpa sesi.
+- Endpoint EMIS/SIMPEG mengembalikan fallback saat upstream kosong.
+- Konfigurasi Turso tersedia dan SQLite lokal tetap bekerja.
+- Data contoh memiliki penanda yang jelas.
+- `npm run lint` dan `npm run build` berhasil.
+
+## 15. Tahap Berikutnya
+
+1. Login Turso CLI dan membuat database `dashboard-man1-prod`.
+2. Mengisi URL/token Turso pada environment.
+3. Mendapatkan dokumentasi dan kredensial API EMIS/SIMPEG.
+4. Menetapkan transformasi respons upstream ke model dashboard.
+5. Validasi angka bersama operator madrasah.
+6. Membatasi pembuatan akun admin pada produksi.
+7. Menambahkan role Super Admin, Admin Data, dan Admin Konten.
