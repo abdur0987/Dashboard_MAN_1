@@ -242,7 +242,7 @@ export function loadAssistantKnowledge() {
 
 const regionAliases = [
     {
-        label: "MAN 1 Bandar Lampung",
+        label: "MAN 1 Lampung Selatan",
         aliases: ["man 1", "man 1 bandar lampung", "madrasah", "sukarame"],
     },
 ];

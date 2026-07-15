@@ -68,7 +68,7 @@ type SpeechWindow = Window &
   };
 
 const openingMessage =
-  "Assalamualaikum. Saya asisten data Dashboard MAN 1 Bandar Lampung. Saya membantu membaca ringkasan EMIS, SIMPEG, dan menyusun poin penting untuk pimpinan.";
+  "Assalamualaikum. Saya asisten data Dashboard MAN 1 Lampung Selatan. Saya membantu membaca ringkasan EMIS, SIMPEG, dan menyusun poin penting untuk pimpinan.";
 
 const defaultSuggestions = [
   "Buat poin penting pimpinan",
@@ -264,7 +264,7 @@ export function AiAssistant({ variant = "dashboard" }: AiAssistantProps) {
               <div className="relative grid h-12 w-12 place-items-center rounded-xl border border-white/50 bg-white p-1.5 shadow-xl">
                 <Image
                   src="/brand/man1/logo.png"
-                  alt="Logo MAN 1 Bandar Lampung"
+                  alt="Logo MAN 1 Lampung Selatan"
                   fill
                   sizes="48px"
                   className="object-contain p-1"

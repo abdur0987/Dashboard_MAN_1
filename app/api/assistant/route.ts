@@ -488,7 +488,7 @@ function buildIndicatorPoints(data: DashboardData, snapshot: DashboardSnapshot) 
 
 function buildContactAnswer(data: DashboardData, suggestions: string[]) {
   const points = [
-    `Lokasi MAN 1 Bandar Lampung berada di ${data.contact.address}.`,
+    `Lokasi MAN 1 Lampung Selatan berada di ${data.contact.address}.`,
     `Instansi: ${data.contact.institution}.`,
     `Telepon: ${data.contact.phone}.`,
     `Email: ${data.contact.email}.`,
@@ -504,7 +504,7 @@ function buildContactAnswer(data: DashboardData, suggestions: string[]) {
 
 function buildInstitutionPoints(data: DashboardData, snapshot: DashboardSnapshot) {
   return [
-    `${data.contact.institution} adalah Madrasah Aliyah Negeri di Kota Bandar Lampung.`,
+    `${data.contact.institution} adalah Madrasah Aliyah Negeri di Kabupaten Lampung Selatan.`,
     `Dashboard menampilkan ringkasan EMIS dan SIMPEG tahun ${snapshot.latestYear}, agenda madrasah, profil ASN, publikasi, dan kontak resmi.`,
     `Rata-rata indikator terbaru berada di ${formatNumber(snapshot.average)}%.`,
     `Lokasi kantor: ${data.contact.address}.`,

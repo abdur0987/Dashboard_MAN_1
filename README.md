@@ -1,4 +1,4 @@
-# Dashboard MAN 1 Bandar Lampung
+# Dashboard MAN 1 Lampung Selatan
 
 Dashboard data madrasah dengan dua modul inti:
 
@@ -34,11 +34,17 @@ diganti sebelum produksi.
 - `GET /api/dashboard`
 - `PUT /api/dashboard` (wajib sesi admin)
 
-Isi `EMIS_API_URL`, `EMIS_API_TOKEN`, `SIMPEG_API_URL`, dan `SIMPEG_API_TOKEN`
-untuk memakai layanan upstream. Selama nilainya kosong, endpoint integrasi
-mengembalikan data dari database dashboard.
+Isi `EMIS_PUBLIC_URL_API`, `EMIS_PUBLIC_KEY`, `EMIS_PRIVATE_KEY`,
+`SIMPEG_PUBLIC_URL_API`, `SIMPEG_PUBLIC_EMAIL`, dan
+`SIMPEG_PUBLIC_PASSWORD` pada `.env.local`. Adapter EMIS memverifikasi identitas
+madrasah berdasarkan NSM `131118010001`. Adapter SIMPEG melakukan autentikasi
+server-side, menyaring pegawai berdasarkan NPSN/NSM, lalu hanya meneruskan nama,
+jabatan, status ASN, dan pendidikan ke dashboard.
 
-Database Turso `dashboard-man1-prod` sudah dibuat dan menjadi database aktif
+Jika koneksi upstream gagal atau environment belum lengkap, endpoint integrasi
+mengembalikan snapshot aman dari database dashboard dengan status `fallback`.
+
+Database Turso `dashboard-man1-lamsel-prod` menjadi database aktif
 untuk project ini. SQLite tetap tersedia sebagai fallback dengan mengosongkan
 `TURSO_DATABASE_URL` dan `TURSO_AUTH_TOKEN`. Panduan lengkap tersedia di
 `docs/turso-production.md`.

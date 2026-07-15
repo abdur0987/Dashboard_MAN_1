@@ -2,10 +2,14 @@
 
 ## Current project status
 
-Database `dashboard-man1-prod` has been created in the Turso account
+Database `dashboard-man1-lamsel-prod` has been created in the Turso account
 `abdur0987`, its schema has been pushed, and the initial MAN 1 dataset has been
 seeded. Local development currently connects to this database through
 `.env.local`. Keep that file private and never commit its token.
+
+The previous `dashboard-man1-prod` database is retained temporarily as a
+rollback source. Do not delete it until the new connection has also been
+verified in the deployment environment.
 
 This app uses local SQLite in development and switches to Turso/libSQL in production
 when `TURSO_DATABASE_URL` is present.
@@ -22,14 +26,14 @@ turso auth login
 Create a production database:
 
 ```bash
-turso db create dashboard-man1-prod
+turso db create dashboard-man1-lamsel-prod
 ```
 
 Get the database URL and token:
 
 ```bash
-turso db show dashboard-man1-prod --url
-turso db tokens create dashboard-man1-prod
+turso db show dashboard-man1-lamsel-prod --url
+turso db tokens create dashboard-man1-lamsel-prod
 ```
 
 ## 2. Configure environment variables

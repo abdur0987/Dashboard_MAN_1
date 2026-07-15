@@ -2,6 +2,7 @@ import { asc } from "drizzle-orm";
 
 import { db } from "@/lib/db/client";
 import { ensureDatabaseReady } from "@/lib/db/migrate";
+import { clearIntegrationCache, getIntegratedDashboardData } from "@/lib/integrations/upstream";
 import {
   activities as activitiesTable,
   awardCollections as awardCollectionsTable,
@@ -22,36 +23,36 @@ import type { ChartPoint, DashboardData, DashboardRow } from "@/lib/types";
 
 export const seedDashboardData: DashboardData = {
   indicators: [
-    { id: 1, name: "Peserta Didik", description: "Total peserta didik aktif yang ditampilkan pada ringkasan EMIS.", category: "EMIS", unit: "siswa", source: "EMIS / profil resmi madrasah", year: 2026, value: 1525, trend: 0, status: "aktif" },
-    { id: 2, name: "Rombongan Belajar", description: "Rombongan belajar kelas X, XI, dan XII.", category: "EMIS", unit: "rombel", source: "Data contoh integrasi EMIS", year: 2026, value: 43, trend: 0, status: "perlu-validasi" },
-    { id: 3, name: "Guru dan Tenaga Kependidikan", description: "Jumlah GTK pada profil madrasah.", category: "SIMPEG", unit: "orang", source: "SIMPEG / profil resmi madrasah", year: 2026, value: 114, trend: 0, status: "aktif" },
-    { id: 4, name: "Aparatur Sipil Negara", description: "PNS dan PPPK yang dipetakan melalui SIMPEG.", category: "SIMPEG", unit: "orang", source: "Data contoh integrasi SIMPEG", year: 2026, value: 82, trend: 0, status: "perlu-validasi" },
-    { id: 5, name: "ASN Tersertifikasi", description: "ASN yang telah memiliki sertifikasi profesi sesuai data awal.", category: "SIMPEG", unit: "orang", source: "Data contoh integrasi SIMPEG", year: 2026, value: 76, trend: 0, status: "perlu-validasi" },
-    { id: 6, name: "Akreditasi Madrasah", description: "Status akreditasi MAN 1 Bandar Lampung.", category: "EMIS", unit: "nilai", source: "Profil resmi MAN 1 Bandar Lampung", year: 2026, value: 4, trend: 0, status: "aktif" },
+    { id: 1, name: "Peserta Didik", description: "Total peserta didik pada referensi satuan pendidikan dan akan diperbarui dari rekap EMIS.", category: "EMIS", unit: "siswa", source: "Referensi Kemendikdasmen / EMIS", year: 2026, value: 211, trend: 0, status: "aktif" },
+    { id: 2, name: "Rombongan Belajar", description: "Rombongan belajar kelas X, XI, dan XII menunggu pemetaan respons EMIS.", category: "EMIS", unit: "rombel", source: "Menunggu rekap EMIS", year: 2026, value: 0, trend: 0, status: "perlu-validasi" },
+    { id: 3, name: "Guru dan Tenaga Kependidikan", description: "Profil GTK yang cocok dengan NPSN atau NSM pada respons SIMPEG.", category: "SIMPEG", unit: "orang", source: "SIMPEG API / snapshot awal", year: 2026, value: 3, trend: 0, status: "perlu-validasi" },
+    { id: 4, name: "Aparatur Sipil Negara", description: "PNS dan PPPK yang berhasil dipetakan melalui SIMPEG.", category: "SIMPEG", unit: "orang", source: "SIMPEG API / snapshot awal", year: 2026, value: 3, trend: 0, status: "perlu-validasi" },
+    { id: 5, name: "ASN Tersertifikasi", description: "Jumlah ASN tersertifikasi menunggu field sertifikasi dari API.", category: "SIMPEG", unit: "orang", source: "Menunggu pemetaan SIMPEG", year: 2026, value: 0, trend: 0, status: "perlu-validasi" },
+    { id: 6, name: "Akreditasi Madrasah", description: "Status akreditasi MAN 1 Lampung Selatan.", category: "EMIS", unit: "nilai", source: "Referensi resmi MAN 1 Lampung Selatan", year: 2026, value: 2, trend: 0, status: "aktif" },
   ],
   rows: [
-    { id: 1, indicator: "Peserta Didik Kelas X", category: "EMIS", region: "MAN 1 Bandar Lampung", period: "Tahunan", year: 2026, value: 512, unit: "siswa", source: "Data contoh integrasi EMIS" },
-    { id: 2, indicator: "Peserta Didik Kelas XI", category: "EMIS", region: "MAN 1 Bandar Lampung", period: "Tahunan", year: 2026, value: 506, unit: "siswa", source: "Data contoh integrasi EMIS" },
-    { id: 3, indicator: "Peserta Didik Kelas XII", category: "EMIS", region: "MAN 1 Bandar Lampung", period: "Tahunan", year: 2026, value: 507, unit: "siswa", source: "Data contoh integrasi EMIS" },
-    { id: 4, indicator: "Siswa Laki-laki", category: "EMIS", region: "MAN 1 Bandar Lampung", period: "Tahunan", year: 2026, value: 684, unit: "siswa", source: "Data contoh integrasi EMIS" },
-    { id: 5, indicator: "Siswa Perempuan", category: "EMIS", region: "MAN 1 Bandar Lampung", period: "Tahunan", year: 2026, value: 841, unit: "siswa", source: "Data contoh integrasi EMIS" },
-    { id: 6, indicator: "PNS", category: "SIMPEG", region: "MAN 1 Bandar Lampung", period: "Tahunan", year: 2026, value: 65, unit: "orang", source: "Data contoh integrasi SIMPEG" },
-    { id: 7, indicator: "PPPK", category: "SIMPEG", region: "MAN 1 Bandar Lampung", period: "Tahunan", year: 2026, value: 17, unit: "orang", source: "Data contoh integrasi SIMPEG" },
-    { id: 8, indicator: "Non-ASN", category: "SIMPEG", region: "MAN 1 Bandar Lampung", period: "Tahunan", year: 2026, value: 32, unit: "orang", source: "Data contoh integrasi SIMPEG" },
-    { id: 9, indicator: "Pendidikan S2", category: "SIMPEG", region: "MAN 1 Bandar Lampung", period: "Tahunan", year: 2026, value: 28, unit: "orang", source: "Data contoh integrasi SIMPEG" },
-    { id: 10, indicator: "Pendidikan S1 / D4", category: "SIMPEG", region: "MAN 1 Bandar Lampung", period: "Tahunan", year: 2026, value: 79, unit: "orang", source: "Data contoh integrasi SIMPEG" },
-    { id: 11, indicator: "Pendidikan Diploma", category: "SIMPEG", region: "MAN 1 Bandar Lampung", period: "Tahunan", year: 2026, value: 7, unit: "orang", source: "Data contoh integrasi SIMPEG" },
+    { id: 1, indicator: "Peserta Didik Kelas X", category: "EMIS", region: "MAN 1 Lampung Selatan", period: "Tahunan", year: 2026, value: 0, unit: "siswa", source: "Menunggu pemetaan rekap EMIS" },
+    { id: 2, indicator: "Peserta Didik Kelas XI", category: "EMIS", region: "MAN 1 Lampung Selatan", period: "Tahunan", year: 2026, value: 0, unit: "siswa", source: "Menunggu pemetaan rekap EMIS" },
+    { id: 3, indicator: "Peserta Didik Kelas XII", category: "EMIS", region: "MAN 1 Lampung Selatan", period: "Tahunan", year: 2026, value: 0, unit: "siswa", source: "Menunggu pemetaan rekap EMIS" },
+    { id: 4, indicator: "Siswa Laki-laki", category: "EMIS", region: "MAN 1 Lampung Selatan", period: "Tahunan", year: 2026, value: 0, unit: "siswa", source: "Menunggu pemetaan rekap EMIS" },
+    { id: 5, indicator: "Siswa Perempuan", category: "EMIS", region: "MAN 1 Lampung Selatan", period: "Tahunan", year: 2026, value: 0, unit: "siswa", source: "Menunggu pemetaan rekap EMIS" },
+    { id: 6, indicator: "PNS", category: "SIMPEG", region: "MAN 1 Lampung Selatan", period: "Tahunan", year: 2026, value: 3, unit: "orang", source: "SIMPEG API / snapshot awal" },
+    { id: 7, indicator: "PPPK", category: "SIMPEG", region: "MAN 1 Lampung Selatan", period: "Tahunan", year: 2026, value: 0, unit: "orang", source: "SIMPEG API / snapshot awal" },
+    { id: 8, indicator: "Non-ASN", category: "SIMPEG", region: "MAN 1 Lampung Selatan", period: "Tahunan", year: 2026, value: 0, unit: "orang", source: "Belum tersedia pada endpoint SIMPEG" },
+    { id: 9, indicator: "Pendidikan S2", category: "SIMPEG", region: "MAN 1 Lampung Selatan", period: "Tahunan", year: 2026, value: 1, unit: "orang", source: "SIMPEG API / snapshot awal" },
+    { id: 10, indicator: "Pendidikan S1 / D4", category: "SIMPEG", region: "MAN 1 Lampung Selatan", period: "Tahunan", year: 2026, value: 2, unit: "orang", source: "SIMPEG API / snapshot awal" },
+    { id: 11, indicator: "Pendidikan Diploma", category: "SIMPEG", region: "MAN 1 Lampung Selatan", period: "Tahunan", year: 2026, value: 0, unit: "orang", source: "SIMPEG API / snapshot awal" },
   ],
   chartSeries: [
-    { year: 2026, EMIS: 1525, SIMPEG: 114 },
+    { year: 2026, EMIS: 211, SIMPEG: 3 },
   ],
   publications: [
-    { id: 1, title: "Profil MAN 1 Bandar Lampung", description: "Identitas, sejarah singkat, dan informasi satuan pendidikan.", date: "11 Juli 2026", category: "Profil Madrasah", fileLabel: "WEB" },
-    { id: 2, title: "Ringkasan EMIS dan SIMPEG", description: "Dokumen rancangan data awal untuk proses validasi dan integrasi API.", date: "11 Juli 2026", category: "Data Internal", fileLabel: "DRAFT" },
+    { id: 1, title: "Profil MAN 1 Lampung Selatan", description: "Identitas dan informasi satuan pendidikan di Wayurang, Kalianda.", date: "14 Juli 2026", category: "Profil Madrasah", fileLabel: "WEB" },
+    { id: 2, title: "Ringkasan EMIS dan SIMPEG", description: "Ringkasan awal untuk validasi integrasi API Kementerian Agama.", date: "14 Juli 2026", category: "Data Internal", fileLabel: "API" },
   ],
   datasets: [
-    { id: 1, title: "Rekap EMIS MAN 1 Bandar Lampung", description: "Profil sekolah, peserta didik, tingkat, gender, dan rombongan belajar.", category: "EMIS", year: 2026, producer: "MAN 1 Bandar Lampung", frequency: "Semester", format: "API / XLSX", sourceUrl: "", excelUrl: "", pdfUrl: "", standardData: "Tingkat, jenis kelamin, jumlah peserta didik, rombongan belajar, periode.", metadata: "Status: data contoh; Target: EMIS; Satuan kerja: MAN 1 Bandar Lampung" },
-    { id: 2, title: "Statistik SIMPEG MAN 1 Bandar Lampung", description: "Profil pegawai, status ASN, sertifikasi, dan pendidikan terakhir.", category: "SIMPEG", year: 2026, producer: "MAN 1 Bandar Lampung", frequency: "Bulanan", format: "API / XLSX", sourceUrl: "", excelUrl: "", pdfUrl: "", standardData: "Status pegawai, pendidikan, sertifikasi, jabatan, periode.", metadata: "Status: data contoh; Target: SIMPEG; Satuan kerja: MAN 1 Bandar Lampung" },
+    { id: 1, title: "Rekap EMIS MAN 1 Lampung Selatan", description: "Profil sekolah, peserta didik, tingkat, gender, dan rombongan belajar.", category: "EMIS", year: 2026, producer: "MAN 1 Lampung Selatan", frequency: "Semester", format: "API / XLSX", sourceUrl: "", excelUrl: "", pdfUrl: "", standardData: "Tingkat, jenis kelamin, jumlah peserta didik, rombongan belajar, periode.", metadata: "Status: integrasi bertahap; Target: EMIS; NSM: 131118010001" },
+    { id: 2, title: "Statistik SIMPEG MAN 1 Lampung Selatan", description: "Profil pegawai, status ASN, dan pendidikan terakhir tanpa data pribadi sensitif.", category: "SIMPEG", year: 2026, producer: "MAN 1 Lampung Selatan", frequency: "Bulanan", format: "API / XLSX", sourceUrl: "", excelUrl: "", pdfUrl: "", standardData: "Nama, jabatan, status pegawai, pendidikan, periode.", metadata: "Status: API aktif; Data sensitif tidak diteruskan ke frontend" },
   ],
   datasetDetails: [],
   releaseSchedules: [
@@ -59,13 +60,13 @@ export const seedDashboardData: DashboardData = {
     { id: 2, title: "Pemutakhiran Statistik SIMPEG", period: "Agustus 2026", language: "Indonesia", scheduledDate: "01-09-2026", realizedDate: "-", status: "rencana", documentUrl: "", format: "API" },
   ],
   officeLocations: [
-    { id: 1, name: "MAN 1 Bandar Lampung", type: "kanwil", address: "Jl. Letkol H. Endro Suratmin, Harapan Jaya, Sukarame, Bandar Lampung 35131", phone: "0721-706448", latitude: -5.374730882691959, longitude: 105.30271053314209, mapsUrl: "https://maps.google.com/?q=-5.374730882691959,105.30271053314209" },
+    { id: 1, name: "MAN 1 Lampung Selatan", type: "kanwil", address: "Jl. Soekarno Hatta, Jati, Wayurang, Kalianda, Lampung Selatan", phone: "(0727) 3320495", latitude: -5.6931, longitude: 105.5824, mapsUrl: "https://maps.google.com/?q=-5.6931,105.5824" },
   ],
   activities: [
-    { id: 1, title: "Lukman Hakim, S.Pd., M.M.", caption: "Kepala MAN 1 Bandar Lampung", imageUrl: "/brand/man1/lukman-hakim.jpg" },
-    { id: 2, title: "Qonita Nurhayati As'ad, S.H.", caption: "Plt. Kepala Tata Usaha", imageUrl: "/brand/man1/qonita-nurhayati.jpg" },
-    { id: 3, title: "Drs. Tri Sutanto", caption: "Waka Sarana dan Prasarana", imageUrl: "/brand/man1/tri-sutanto.jpg" },
-    { id: 4, title: "Dra. Yuniarti", caption: "Waka Hubungan Masyarakat", imageUrl: "/brand/man1/yuniarti.jpg" },
+    { id: 1, title: "Dr. H. Yayuk Dwi Wahyuni, S.Pd.I., M.Ag.", caption: "Kepala MAN 1 Lampung Selatan", imageUrl: "/brand/man1/kepala-yayuk-dwi-wahyuni.jpeg" },
+    { id: 2, title: "Drs. Edi Sehadi", caption: "Guru Ahli Muda • PNS", imageUrl: "/brand/man1/logo.png" },
+    { id: 3, title: "M Biqman, S.Pd., M.M.", caption: "Guru Ahli Madya • PNS", imageUrl: "/brand/man1/logo.png" },
+    { id: 4, title: "Iyum Aningrum, S.Ag.", caption: "Guru Ahli Madya • PNS", imageUrl: "/brand/man1/logo.png" },
   ],
   videos: [],
   latestNews: [],
@@ -74,23 +75,23 @@ export const seedDashboardData: DashboardData = {
     { id: 2, date: "17 Juli 2026", time: "09.00 WIB", title: "Pemetaan data ASN SIMPEG", unit: "Tata Usaha", location: "Ruang Tata Usaha", priority: "-", status: "terjadwal" },
   ],
   awardCollections: [
-    { id: "prestasi-madrasah", title: "Prestasi Madrasah", description: "Sorotan capaian MAN 1 Bandar Lampung.", items: [
-      { id: 1, title: "Siswa diterima di perguruan tinggi", description: "Sorotan capaian peserta didik MAN 1 Bandar Lampung pada 2025.", year: 2025, imageUrl: "/brand/man1/siswa-prestasi.jpeg", alt: "Peserta didik MAN 1 Bandar Lampung" },
-      { id: 2, title: "Zona Integritas", description: "Komitmen layanan madrasah yang bersih dan melayani.", year: 2026, imageUrl: "/brand/man1/zona-integritas.jpeg", alt: "Zona Integritas MAN 1 Bandar Lampung" },
+    { id: "prestasi-madrasah", title: "Kegiatan Madrasah", description: "Sorotan kegiatan MAN 1 Lampung Selatan.", items: [
+      { id: 1, title: "OSN tingkat kabupaten", description: "Peserta didik mengikuti OSN tingkat kabupaten secara daring.", year: 2026, imageUrl: "/brand/man1/siswa-osn.jpeg", alt: "Peserta OSN MAN 1 Lampung Selatan" },
+      { id: 2, title: "Rakor kegiatan belajar", description: "Penguatan program ekoteologi dan kebersamaan dalam rapat koordinasi KBM.", year: 2026, imageUrl: "/brand/man1/rapat-kbm.jpeg", alt: "Rakor KBM MAN 1 Lampung Selatan" },
     ] },
   ],
   contact: {
-    institution: "MAN 1 Bandar Lampung",
-    address: "Jl. Letkol H. Endro Suratmin, Harapan Jaya, Sukarame, Bandar Lampung 35131",
-    phone: "0721-706448",
+    institution: "MAN 1 Lampung Selatan",
+    address: "Jl. Soekarno Hatta, Jati, Wayurang, Kalianda, Lampung Selatan",
+    phone: "(0727) 3320495",
     whatsapp: "-",
-    email: "admin.mandela@gmail.com",
-    instagram: "https://www.instagram.com/man1balam_official/",
-    youtube: "",
-    website: "https://man1balam.sch.id",
-    mapEmbedUrl: "https://www.google.com/maps?q=-5.374730882691959,105.30271053314209&z=16&output=embed",
+    email: "info@mansalase.sch.id",
+    instagram: "https://www.instagram.com/mansatu.lamsel/",
+    youtube: "https://www.youtube.com/c/MANSALASE",
+    website: "https://mansalase.sch.id",
+    mapEmbedUrl: "https://www.google.com/maps?q=-5.6931,105.5824&z=16&output=embed",
   },
-  filters: { years: ["2026"], categories: ["EMIS", "SIMPEG"], regions: ["MAN 1 Bandar Lampung"] },
+  filters: { years: ["2026"], categories: ["EMIS", "SIMPEG"], regions: ["MAN 1 Lampung Selatan"] },
 };
 
 let seedPromise: Promise<void> | null = null;
@@ -99,7 +100,7 @@ export function clearDashboardDataCache() {
   seedPromise = null;
 }
 
-export async function getDashboardData(): Promise<DashboardData> {
+export async function getDashboardData(options: { integrate?: boolean } = {}): Promise<DashboardData> {
   await ensureDashboardSeeded();
 
   const [indicators, rows, chartRows, publications, datasets, releaseSchedules, officeLocations, activities, videos, schedules, collections, items, contactRows, filterRows] = await Promise.all([
@@ -126,7 +127,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     regions: filterRows.filter((item) => item.kind === "region").map((item) => item.value),
   };
 
-  return {
+  const dashboardData: DashboardData = {
     indicators,
     rows,
     chartSeries,
@@ -162,6 +163,8 @@ export async function getDashboardData(): Promise<DashboardData> {
       regions: filters.regions.length ? filters.regions : seedDashboardData.filters.regions,
     },
   };
+
+  return options.integrate === false ? dashboardData : getIntegratedDashboardData(dashboardData);
 }
 
 export async function replaceDashboardData(data: DashboardData) {
@@ -169,6 +172,7 @@ export async function replaceDashboardData(data: DashboardData) {
   await clearDashboardTables();
   await insertDashboardData(data);
   clearDashboardDataCache();
+  clearIntegrationCache();
 }
 
 async function ensureDashboardSeeded() {
@@ -176,6 +180,12 @@ async function ensureDashboardSeeded() {
   if (!seedPromise) {
     seedPromise = (async () => {
       const existing = await db.select().from(indicatorsTable).limit(1);
+      const currentContact = await db.select().from(contactInfoTable).limit(1);
+      if (currentContact[0]?.institution === "MAN 1 Bandar Lampung") {
+        await clearDashboardTables();
+        await insertDashboardData(seedDashboardData);
+        return;
+      }
       if (!existing.length) await insertDashboardData(seedDashboardData);
     })();
   }

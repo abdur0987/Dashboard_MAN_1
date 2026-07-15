@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Dashboard MAN 1 Bandar Lampung | EMIS & SIMPEG",
+  title: "Dashboard MAN 1 Lampung Selatan | EMIS & SIMPEG",
   description:
-    "Dashboard profil sekolah dan siswa dari EMIS serta profil dan statistik ASN dari SIMPEG MAN 1 Bandar Lampung.",
+    "Dashboard profil sekolah dan siswa dari EMIS serta profil dan statistik ASN dari SIMPEG MAN 1 Lampung Selatan.",
   icons: {
     icon: [
       {

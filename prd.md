@@ -1,6 +1,6 @@
 # PRODUCT REQUIREMENT DOCUMENT
 
-## Dashboard MAN 1 Bandar Lampung — EMIS & SIMPEG
+## Dashboard MAN 1 Lampung Selatan — EMIS & SIMPEG
 
 Versi: 1.0  
 Status: Implementasi awal  
@@ -8,7 +8,7 @@ Tanggal: 11 Juli 2026
 
 ## 1. Ringkasan
 
-Dashboard MAN 1 Bandar Lampung adalah aplikasi web untuk menyajikan data inti
+Dashboard MAN 1 Lampung Selatan adalah aplikasi web untuk menyajikan data inti
 madrasah dalam satu tampilan yang ringkas, visual, dan dapat dikelola. Versi
 pertama dibatasi pada dua sumber utama:
 
@@ -23,7 +23,7 @@ Dashboard memiliki tiga permukaan yang memakai sumber data yang sama:
 
 ## 2. Tujuan
 
-- Menyediakan ringkasan profil MAN 1 Bandar Lampung yang cepat dipahami.
+- Menyediakan ringkasan profil MAN 1 Lampung Selatan yang cepat dipahami.
 - Menampilkan rekap siswa tanpa membuka laporan EMIS mentah.
 - Menampilkan profil dan komposisi ASN/GTK dari SIMPEG.
 - Menyediakan fondasi integrasi API resmi tanpa menaruh token di browser.
@@ -80,7 +80,7 @@ Dashboard memiliki tiga permukaan yang memakai sumber data yang sama:
 
 ## 5. Di Luar Ruang Lingkup Saat Ini
 
-- Sinkronisasi produksi dengan API EMIS/SIMPEG sebelum endpoint dan kredensial resmi tersedia.
+- Sinkronisasi rinci peserta didik sebelum kontrak endpoint EMIS terpetakan dan tervalidasi.
 - Penggajian, absensi rinci, SKP, dan data pribadi sensitif ASN.
 - Portal siswa/orang tua.
 - Pembayaran dan layanan akademik transaksional.
@@ -120,8 +120,11 @@ SIMPEG API ----/                         |-------> Slideshow
                                          |-------> Panel admin
 ```
 
-Jika API upstream belum dikonfigurasi, endpoint integrasi membaca fallback dari
-database dashboard dan memberi status `fallback`.
+Adapter EMIS memverifikasi identitas sekolah melalui NSM. Adapter SIMPEG
+melakukan autentikasi server-side, menyaring respons berdasarkan NPSN/NSM, dan
+hanya meneruskan field publik yang aman. Jika API upstream gagal, endpoint
+integrasi membaca fallback dari database dashboard dan memberi status
+`fallback`.
 
 ## 8. Endpoint
 
@@ -183,17 +186,19 @@ ditetapkan.
 
 ## 11. Status Validitas Data
 
-Data berikut bersumber dari profil resmi madrasah:
+Data berikut telah dipetakan dari referensi resmi madrasah:
 
 - nama dan alamat sekolah;
 - NPSN dan NSM;
 - status dan akreditasi;
-- total siswa dan guru pada profil resmi;
-- nama, jabatan, dan foto pejabat yang ditampilkan.
+- total peserta didik pada referensi satuan pendidikan;
+- nama kepala madrasah dan dokumentasi serah terima terbaru.
 
-Rincian tingkat, gender, rombel, status ASN, pendidikan, dan sertifikasi pada
-versi awal adalah data contoh. UI wajib menampilkan peringatan sampai data
-tersebut telah divalidasi atau API produksi aktif.
+SIMPEG saat ini menyediakan snapshot profil yang cocok dengan identitas sekolah.
+Data tersebut ditampilkan sebagai perlu validasi dan tidak dianggap sebagai
+total pegawai definitif. Rincian tingkat, gender, rombel, non-ASN, dan
+sertifikasi tidak diisi dengan angka contoh; UI menampilkan status menunggu
+pemetaan sumber resmi.
 
 ## 12. Kebutuhan Fungsional
 
@@ -235,10 +240,9 @@ tersebut telah divalidasi atau API produksi aktif.
 
 ## 15. Tahap Berikutnya
 
-1. Login Turso CLI dan membuat database `dashboard-man1-prod`.
-2. Mengisi URL/token Turso pada environment.
-3. Mendapatkan dokumentasi dan kredensial API EMIS/SIMPEG.
-4. Menetapkan transformasi respons upstream ke model dashboard.
-5. Validasi angka bersama operator madrasah.
-6. Membatasi pembuatan akun admin pada produksi.
-7. Menambahkan role Super Admin, Admin Data, dan Admin Konten.
+1. Memverifikasi koneksi deployment ke `dashboard-man1-lamsel-prod`.
+2. Menjaga `dashboard-man1-prod` sebagai rollback sampai cutover produksi tervalidasi.
+3. Menetapkan transformasi respons EMIS rinci ke model dashboard.
+4. Validasi angka bersama operator madrasah.
+5. Membatasi pembuatan akun admin pada produksi.
+6. Menambahkan role Super Admin, Admin Data, dan Admin Konten.

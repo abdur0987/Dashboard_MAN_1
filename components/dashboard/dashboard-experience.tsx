@@ -85,6 +85,8 @@ export function DashboardExperience({ data: initialData }: { data: DashboardData
   const certified = indicatorValue(data, "ASN Tersertifikasi");
   const gradeRows = rowsByPrefix(data.rows, "Peserta Didik Kelas");
   const genderRows = data.rows.filter((row) => /Laki-laki|Perempuan/i.test(row.indicator));
+  const hasGradeData = gradeRows.some((row) => row.value > 0);
+  const hasGenderData = genderRows.some((row) => row.value > 0);
   const employmentRows = data.rows.filter((row) => ["PNS", "PPPK", "Non-ASN"].includes(row.indicator));
   const educationRows = data.rows.filter((row) => row.indicator.startsWith("Pendidikan"));
 
@@ -104,11 +106,11 @@ export function DashboardExperience({ data: initialData }: { data: DashboardData
         <div className="container flex h-20 items-center justify-between gap-5">
           <Link href="#beranda" className="flex min-w-0 items-center gap-3">
             <span className="kanwil-brand-mark h-12 w-12 rounded-xl">
-              <Image src="/brand/man1/logo.png" alt="Logo MAN 1 Bandar Lampung" width={48} height={48} className="h-10 w-10 object-contain" priority />
+              <Image src="/brand/man1/logo.png" alt="Logo MAN 1 Lampung Selatan" width={48} height={48} className="h-10 w-10 object-contain" priority />
               <span />
             </span>
             <span className="min-w-0">
-              <strong className="block truncate text-sm font-extrabold text-emerald-950 md:text-base">MAN 1 Bandar Lampung</strong>
+              <strong className="block truncate text-sm font-extrabold text-emerald-950 md:text-base">MAN 1 Lampung Selatan</strong>
               <small className="block truncate text-[0.62rem] font-semibold uppercase tracking-[0.15em] text-emerald-800/65">Dashboard EMIS & SIMPEG</small>
             </span>
           </Link>
@@ -132,7 +134,7 @@ export function DashboardExperience({ data: initialData }: { data: DashboardData
 
       <section id="beranda" className="relative overflow-hidden border-b border-white/60">
         <div className="absolute inset-0">
-          <Image src="/brand/man1/siswa-prestasi.jpeg" alt="Peserta didik MAN 1 Bandar Lampung" fill className="object-cover" priority />
+          <Image src="/brand/man1/kampus.jpeg" alt="Kampus MAN 1 Lampung Selatan" fill className="object-cover" priority />
           <div className="absolute inset-0 bg-[linear-gradient(100deg,rgba(2,44,34,.98)_0%,rgba(3,66,49,.93)_46%,rgba(2,32,27,.45)_100%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_20%,rgba(250,204,21,.22),transparent_32%)]" />
         </div>
@@ -142,17 +144,17 @@ export function DashboardExperience({ data: initialData }: { data: DashboardData
             <h1 className="max-w-3xl text-[2.85rem] font-black leading-[1.08] tracking-[-0.035em] sm:text-6xl sm:leading-[1.04] md:text-7xl">
               <span className="block">Dashboard MAN 1</span>
               {" "}
-              <span className="mt-2 block text-amber-300 sm:mt-3">Bandar Lampung</span>
+              <span className="mt-2 block text-amber-300 sm:mt-3">Lampung Selatan</span>
             </h1>
-            <p className="mt-7 max-w-2xl text-base leading-7 text-emerald-50/78 md:text-lg">Rekap profil sekolah dan siswa dari EMIS, dipadukan dengan profil dan statistik ASN dari SIMPEG untuk mendukung keputusan MAN 1 Bandar Lampung.</p>
+            <p className="mt-7 max-w-2xl text-base leading-7 text-emerald-50/78 md:text-lg">Rekap profil sekolah dan siswa dari EMIS, dipadukan dengan profil dan statistik ASN dari SIMPEG untuk mendukung keputusan MAN 1 Lampung Selatan.</p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Button asChild size="lg" className="glass-button-shine bg-amber-400 text-emerald-950 hover:bg-amber-300"><Link href="#data-utama">Lihat data utama <ArrowUpRight className="h-4 w-4" /></Link></Button>
               <Button asChild size="lg" variant="outline" className="border-white/30 bg-white/10 text-white backdrop-blur-xl hover:bg-white/20"><Link href="/slideshow"><MonitorPlay className="h-4 w-4" /> Mode slideshow</Link></Button>
             </div>
             <div className="mt-10 flex flex-wrap gap-x-8 gap-y-3 text-xs text-emerald-100/70">
-              <span>NPSN <b className="ml-2 text-white">10648360</b></span>
-              <span>NSM <b className="ml-2 text-white">131118710001</b></span>
-              <span>Akreditasi <b className="ml-2 text-white">A</b></span>
+              <span>NPSN <b className="ml-2 text-white">10816233</b></span>
+              <span>NSM <b className="ml-2 text-white">131118010001</b></span>
+              <span>Akreditasi <b className="ml-2 text-white">B</b></span>
             </div>
           </div>
 
@@ -161,14 +163,14 @@ export function DashboardExperience({ data: initialData }: { data: DashboardData
             <CoreModuleCard icon={IdCard} label="02 • SIMPEG" title="ASN & GTK" value={gtk} unit="pegawai" description="Status kepegawaian, pendidikan, sertifikasi, dan profil ASN." onClick={() => setActiveModule("SIMPEG")} />
             <div className="glass-panel col-span-full flex items-center gap-4 rounded-xl p-4 text-emerald-950">
               <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-emerald-900 text-amber-300"><Database className="h-5 w-5" /></div>
-              <div><p className="text-xs font-bold uppercase tracking-[.14em] text-emerald-800">Sumber aplikasi</p><p className="mt-1 text-sm text-slate-700">Turso/SQLite • Better Auth • API EMIS & SIMPEG siap konfigurasi</p></div>
+              <div><p className="text-xs font-bold uppercase tracking-[.14em] text-emerald-800">Sumber aplikasi</p><p className="mt-1 text-sm text-slate-700">Turso/SQLite • Better Auth • Adapter API EMIS & SIMPEG aktif</p></div>
             </div>
           </div>
         </div>
       </section>
 
       <section className="section-shell">
-        <SectionHeading eyebrow="Ringkasan Eksekutif" title="Potret utama MAN 1" description="Angka identitas sekolah berasal dari profil resmi. Rincian berlabel perlu validasi tetap menggunakan data contoh sampai API produksi aktif." />
+        <SectionHeading eyebrow="Ringkasan Eksekutif" title="Potret utama MAN 1" description="Identitas madrasah diverifikasi melalui EMIS, sedangkan profil ASN yang cocok dengan NPSN atau NSM dipetakan dari SIMPEG." />
         <div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
           <MetricCard icon={Users} label="Peserta didik" value={students} suffix="siswa" tone="emerald" />
           <MetricCard icon={BookOpenCheck} label="Rombel" value={studyGroups} suffix="kelas" tone="cyan" />
@@ -178,7 +180,7 @@ export function DashboardExperience({ data: initialData }: { data: DashboardData
         </div>
         <div className="mt-4 flex items-start gap-3 rounded-lg border border-amber-200/80 bg-amber-50/70 p-4 text-sm leading-6 text-amber-950 backdrop-blur-xl">
           <Sparkles className="mt-0.5 h-4 w-4 shrink-0" />
-          <p><b>Status data:</b> total siswa, total guru, identitas madrasah, dan profil pejabat mengacu pada sumber resmi; pembagian tingkat, gender, ASN, pendidikan, dan sertifikasi merupakan data contoh untuk memvalidasi rancangan.</p>
+          <p><b>Status data:</b> identitas madrasah dan total peserta didik memakai referensi resmi. SIMPEG saat ini menemukan tiga profil yang cocok pada snapshot API; jumlah tersebut perlu divalidasi sebagai total pegawai. Rincian kelas, gender, rombel, non-ASN, dan sertifikasi belum tersedia.</p>
         </div>
       </section>
 
@@ -195,14 +197,11 @@ export function DashboardExperience({ data: initialData }: { data: DashboardData
             <div className="mt-8 grid gap-5 lg:grid-cols-[1.2fr_.8fr]">
               <Card className="glass-panel overflow-hidden border-white/80">
                 <CardHeader><Badge variant="success" className="w-fit">EMIS • Peserta Didik</Badge><CardTitle>Rekap siswa per tingkat</CardTitle></CardHeader>
-                <CardContent><div className="h-[300px]"><ResponsiveContainer width="100%" height="100%"><BarChart data={gradeRows} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}><CartesianGrid strokeDasharray="4 6" vertical={false} stroke="#cbd5e1" /><XAxis dataKey="shortLabel" tick={{ fontSize: 12 }} /><YAxis tick={{ fontSize: 11 }} /><Tooltip cursor={{ fill: "rgba(16,185,129,.08)" }} /><Bar dataKey="value" name="Siswa" fill="#047857" radius={[8, 8, 0, 0]} /></BarChart></ResponsiveContainer></div></CardContent>
+                <CardContent>{hasGradeData ? <div className="h-[300px]"><ResponsiveContainer width="100%" height="100%"><BarChart data={gradeRows} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}><CartesianGrid strokeDasharray="4 6" vertical={false} stroke="#cbd5e1" /><XAxis dataKey="shortLabel" tick={{ fontSize: 12 }} /><YAxis tick={{ fontSize: 11 }} /><Tooltip cursor={{ fill: "rgba(16,185,129,.08)" }} /><Bar dataKey="value" name="Siswa" fill="#047857" radius={[8, 8, 0, 0]} /></BarChart></ResponsiveContainer></div> : <DataPending label="Rekap siswa per tingkat menunggu pemetaan endpoint EMIS." />}</CardContent>
               </Card>
               <Card className="glass-panel overflow-hidden border-white/80">
                 <CardHeader><Badge variant="outline" className="w-fit">Komposisi Gender</Badge><CardTitle>{students.toLocaleString("id-ID")} peserta didik</CardTitle></CardHeader>
-                <CardContent className="grid items-center gap-4 sm:grid-cols-[1fr_.8fr] lg:grid-cols-1 xl:grid-cols-[1fr_.8fr]">
-                  <div className="h-[220px]"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={genderRows} dataKey="value" nameKey="indicator" innerRadius={58} outerRadius={90} paddingAngle={4}>{genderRows.map((row, index) => <Cell key={row.id} fill={index === 0 ? "#047857" : "#f59e0b"} />)}</Pie><Tooltip /></PieChart></ResponsiveContainer></div>
-                  <div className="grid gap-3">{genderRows.map((row, index) => <LegendStat key={row.id} label={row.indicator.replace("Siswa ", "")} value={row.value} color={index === 0 ? "#047857" : "#f59e0b"} total={students} />)}</div>
-                </CardContent>
+                <CardContent>{hasGenderData ? <div className="grid items-center gap-4 sm:grid-cols-[1fr_.8fr] lg:grid-cols-1 xl:grid-cols-[1fr_.8fr]"><div className="h-[220px]"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={genderRows} dataKey="value" nameKey="indicator" innerRadius={58} outerRadius={90} paddingAngle={4}>{genderRows.map((row, index) => <Cell key={row.id} fill={index === 0 ? "#047857" : "#f59e0b"} />)}</Pie><Tooltip /></PieChart></ResponsiveContainer></div><div className="grid gap-3">{genderRows.map((row, index) => <LegendStat key={row.id} label={row.indicator.replace("Siswa ", "")} value={row.value} color={index === 0 ? "#047857" : "#f59e0b"} total={students} />)}</div></div> : <DataPending label="Komposisi gender menunggu rekap EMIS tervalidasi." />}</CardContent>
               </Card>
               <SchoolProfileCard />
               <IntegrationCard module="EMIS" endpoint="/api/integrations/emis" bullets={["Profil satuan pendidikan", "Rekap siswa, tingkat, dan rombel", "Fallback database saat API belum aktif"]} />
@@ -220,7 +219,7 @@ export function DashboardExperience({ data: initialData }: { data: DashboardData
               <Card className="glass-panel overflow-hidden border-white/80">
                 <CardContent className="grid gap-4 p-6 sm:grid-cols-3"><MiniStat label="Total GTK" value={gtk} /><MiniStat label="ASN" value={asn} /><MiniStat label="Tersertifikasi" value={certified} /></CardContent>
               </Card>
-              <IntegrationCard module="SIMPEG" endpoint="/api/integrations/simpeg" bullets={["Profil dan foto ASN", "Status PNS, PPPK, dan non-ASN", "Kualifikasi serta sertifikasi"]} />
+              <IntegrationCard module="SIMPEG" endpoint="/api/integrations/simpeg" bullets={["Profil ASN tanpa data sensitif", "Status PNS dan PPPK", "Kualifikasi pendidikan"]} />
             </div>
           )}
 
@@ -232,8 +231,8 @@ export function DashboardExperience({ data: initialData }: { data: DashboardData
       </section>
 
       <section id="profil-asn" className="section-shell">
-        <SectionHeading eyebrow="Profil ASN" title="Penggerak madrasah" description="Kartu profil disimpan pada sumber data dashboard yang sama, sehingga halaman utama, admin, dan slideshow selalu konsisten." />
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{data.activities.slice(0, 4).map((person, index) => <article key={person.id} className={`glass-panel group overflow-hidden rounded-xl ${index === 0 ? "sm:col-span-2 lg:col-span-1" : ""}`}><div className="relative aspect-[4/5] overflow-hidden"><Image src={person.imageUrl} alt={person.title} fill className="object-cover object-top transition duration-500 group-hover:scale-[1.03]" /><div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-emerald-950/85 to-transparent" /><Badge className="absolute right-3 top-3 border-white/30 bg-white/80 text-emerald-900 backdrop-blur-xl">ASN</Badge></div><div className="p-5"><p className="text-[.65rem] font-bold uppercase tracking-[.16em] text-emerald-700">{person.caption}</p><h3 className="mt-2 text-lg font-extrabold leading-snug">{person.title}</h3></div></article>)}</div>
+        <SectionHeading eyebrow="Profil ASN" title="Penggerak madrasah" description="Kepala madrasah memakai dokumentasi resmi terbaru; profil guru dipetakan dari data aman SIMPEG dan ditandai sebagai snapshot yang perlu divalidasi." />
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{data.activities.slice(0, 4).map((person, index) => <article key={person.id} className={`glass-panel group overflow-hidden rounded-xl ${index === 0 ? "sm:col-span-2 lg:col-span-1" : ""}`}><div className={`relative aspect-[4/5] overflow-hidden ${person.imageUrl.endsWith("/logo.png") ? "bg-white/70" : ""}`}><Image src={person.imageUrl} alt={person.title} fill className={person.imageUrl.endsWith("/logo.png") ? "object-contain p-8 transition duration-500 group-hover:scale-[1.03]" : "object-cover object-left transition duration-500 group-hover:scale-[1.03]"} /><div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-emerald-950/85 to-transparent" /><Badge className="absolute right-3 top-3 border-white/30 bg-white/80 text-emerald-900 backdrop-blur-xl">ASN</Badge></div><div className="p-5"><p className="text-[.65rem] font-bold uppercase tracking-[.16em] text-emerald-700">{person.caption}</p><h3 className="mt-2 text-lg font-extrabold leading-snug">{person.title}</h3></div></article>)}</div>
       </section>
 
       <section id="integrasi" className="border-y border-white/20 bg-emerald-950 text-white">
@@ -245,10 +244,10 @@ export function DashboardExperience({ data: initialData }: { data: DashboardData
 
       <section className="section-shell grid gap-5 lg:grid-cols-[.85fr_1.15fr]">
         <Card className="glass-panel border-white/80"><CardHeader><Badge variant="outline" className="w-fit">Kontak Madrasah</Badge><CardTitle>{data.contact.institution}</CardTitle></CardHeader><CardContent className="grid gap-4 text-sm text-slate-600"><p className="flex gap-3"><MapPin className="h-5 w-5 shrink-0 text-emerald-700" />{data.contact.address}</p><p className="flex gap-3"><Building2 className="h-5 w-5 shrink-0 text-emerald-700" />Telepon {data.contact.phone}</p><a href={data.contact.website} target="_blank" rel="noreferrer" className="font-bold text-emerald-800">Kunjungi website resmi <ArrowUpRight className="ml-1 inline h-4 w-4" /></a></CardContent></Card>
-        <div className="glass-panel overflow-hidden rounded-xl border-white/80 p-2"><iframe title="Lokasi MAN 1 Bandar Lampung" src={data.contact.mapEmbedUrl} className="h-[320px] w-full rounded-lg border-0" loading="lazy" /></div>
+        <div className="glass-panel overflow-hidden rounded-xl border-white/80 p-2"><iframe title="Lokasi MAN 1 Lampung Selatan" src={data.contact.mapEmbedUrl} className="h-[320px] w-full rounded-lg border-0" loading="lazy" /></div>
       </section>
 
-      <footer className="border-t border-white/10 bg-slate-950 text-white"><div className="container flex flex-col gap-6 py-9 md:flex-row md:items-center md:justify-between"><div className="flex items-center gap-3"><Image src="/brand/man1/logo.png" alt="" width={44} height={44} className="h-11 w-11 object-contain" /><div><p className="font-bold">Dashboard MAN 1 Bandar Lampung</p><p className="text-xs text-slate-400">EMIS • SIMPEG • Satu Data Madrasah</p></div></div><p className="max-w-lg text-xs leading-5 text-slate-400">Versi awal berfokus pada profil sekolah, peserta didik, serta profil dan statistik ASN. Data rinci menunggu validasi sumber resmi.</p></div></footer>
+      <footer className="border-t border-white/10 bg-slate-950 text-white"><div className="container flex flex-col gap-6 py-9 md:flex-row md:items-center md:justify-between"><div className="flex items-center gap-3"><Image src="/brand/man1/logo.png" alt="" width={44} height={44} className="h-11 w-11 object-contain" /><div><p className="font-bold">Dashboard MAN 1 Lampung Selatan</p><p className="text-xs text-slate-400">EMIS • SIMPEG • Satu Data Madrasah</p></div></div><p className="max-w-lg text-xs leading-5 text-slate-400">Versi awal berfokus pada profil sekolah, peserta didik, serta profil dan statistik ASN. Data rinci yang belum tersedia ditampilkan sebagai menunggu validasi.</p></div></footer>
     </main>
   );
 }
@@ -267,12 +266,16 @@ function MetricCard({ icon: Icon, label, value, suffix, tone }: { icon: typeof U
 }
 
 function SchoolProfileCard() {
-  const items = [["NPSN", "10648360"], ["NSM", "131118710001"], ["Status", "Negeri"], ["Akreditasi", "A"]];
-  return <Card className="glass-panel overflow-hidden border-white/80"><CardHeader className="flex-row items-center gap-4"><span className="kanwil-brand-mark h-16 w-16 rounded-xl"><Image src="/brand/man1/logo.png" alt="" width={60} height={60} className="h-14 w-14 object-contain" /><span /></span><div><Badge variant="outline" className="mb-2">Profil Sekolah</Badge><CardTitle>MAN 1 Bandar Lampung</CardTitle><p className="mt-1 text-xs text-slate-500">Sukarame • Kota Bandar Lampung</p></div></CardHeader><CardContent className="grid grid-cols-2 gap-3">{items.map(([label, value]) => <MiniStat key={label} label={label} value={value} />)}</CardContent></Card>;
+  const items = [["NPSN", "10816233"], ["NSM", "131118010001"], ["Status", "Negeri"], ["Akreditasi", "B"]];
+  return <Card className="glass-panel overflow-hidden border-white/80"><CardHeader className="flex-row items-center gap-4"><span className="kanwil-brand-mark h-16 w-16 rounded-xl"><Image src="/brand/man1/logo.png" alt="" width={60} height={60} className="h-14 w-14 object-contain" /><span /></span><div><Badge variant="outline" className="mb-2">Profil Sekolah</Badge><CardTitle>MAN 1 Lampung Selatan</CardTitle><p className="mt-1 text-xs text-slate-500">Wayurang • Kalianda</p></div></CardHeader><CardContent className="grid grid-cols-2 gap-3">{items.map(([label, value]) => <MiniStat key={label} label={label} value={value} />)}</CardContent></Card>;
 }
 
 function IntegrationCard({ module, endpoint, bullets }: { module: Module; endpoint: string; bullets: string[] }) {
-  return <Card className="liquid-panel-dark overflow-hidden"><CardContent className="p-6"><Badge className="border-white/20 bg-white/10 text-amber-200">Jalur Integrasi {module}</Badge><h3 className="mt-4 text-xl font-extrabold">API siap disambungkan</h3><p className="mt-2 text-xs leading-5 text-emerald-100/65">Alamat upstream dan token disimpan pada environment server, bukan pada browser.</p><div className="mt-4 flex items-center gap-3 rounded-lg border border-white/15 bg-white/10 p-3"><span className="rounded bg-amber-300 px-2 py-1 text-[.6rem] font-black text-emerald-950">GET</span><code className="text-xs text-emerald-50">{endpoint}</code><span className="ml-auto text-[.65rem] font-bold text-emerald-300">READY</span></div><ul className="mt-4 grid gap-2 text-xs text-emerald-50/75">{bullets.map((bullet) => <li key={bullet} className="flex gap-2"><span className="text-amber-300">✓</span>{bullet}</li>)}</ul></CardContent></Card>;
+  return <Card className="liquid-panel-dark overflow-hidden"><CardContent className="p-6"><Badge className="border-white/20 bg-white/10 text-amber-200">Jalur Integrasi {module}</Badge><h3 className="mt-4 text-xl font-extrabold">Adapter API server-side aktif</h3><p className="mt-2 text-xs leading-5 text-emerald-100/65">Alamat upstream dan kredensial disimpan pada environment server, bukan pada browser.</p><div className="mt-4 flex items-center gap-3 rounded-lg border border-white/15 bg-white/10 p-3"><span className="rounded bg-amber-300 px-2 py-1 text-[.6rem] font-black text-emerald-950">GET</span><code className="text-xs text-emerald-50">{endpoint}</code><span className="ml-auto text-[.65rem] font-bold text-emerald-300">READY</span></div><ul className="mt-4 grid gap-2 text-xs text-emerald-50/75">{bullets.map((bullet) => <li key={bullet} className="flex gap-2"><span className="text-amber-300">✓</span>{bullet}</li>)}</ul></CardContent></Card>;
+}
+
+function DataPending({ label }: { label: string }) {
+  return <div className="grid min-h-[220px] place-items-center rounded-xl border border-dashed border-emerald-200 bg-emerald-50/50 p-6 text-center"><div><Database className="mx-auto h-8 w-8 text-emerald-700" /><p className="mt-3 text-sm font-semibold text-emerald-950">Data belum ditampilkan</p><p className="mt-1 max-w-sm text-xs leading-5 text-slate-600">{label}</p></div></div>;
 }
 
 function LegendStat({ label, value, total, color }: { label: string; value: number; total: number; color: string }) {

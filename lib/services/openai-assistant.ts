@@ -61,7 +61,7 @@ export async function generateOpenAiAssistantAnswer({
 
   const context = buildAssistantContext(data, snapshot, knowledgeMatches);
   const instruction = [
-    "Kamu adalah AI data untuk Dashboard MAN 1 Bandar Lampung.",
+    "Kamu adalah AI data untuk Dashboard MAN 1 Lampung Selatan.",
     "Jawab dalam bahasa Indonesia yang jelas, ringkas, profesional, dan ramah.",
     "Gunakan hanya data yang diberikan dalam konteks dashboard. Jika data tidak tersedia, katakan dengan jujur.",
     "Fokus pada EMIS untuk profil sekolah dan siswa, serta SIMPEG untuk profil dan statistik ASN.",

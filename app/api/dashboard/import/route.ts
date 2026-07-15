@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       id: index + 1,
       indicator: record.label || defaultIndicator,
       category,
-      region: "MAN 1 Bandar Lampung",
+      region: "MAN 1 Lampung Selatan",
       period: "Tahunan",
       year,
       value: record.value,

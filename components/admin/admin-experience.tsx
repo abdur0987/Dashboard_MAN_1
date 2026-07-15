@@ -95,7 +95,7 @@ const baseCategories = [
 ];
 
 const lampungRegions = [
-  "MAN 1 Bandar Lampung",
+  "MAN 1 Lampung Selatan",
 ];
 
 type ImportResponse = {
@@ -128,7 +128,7 @@ export function AdminExperience({ data }: AdminExperienceProps) {
   const [contact, setContact] = useState<ContactInfo>(data.contact);
   const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
   const [authName, setAuthName] = useState("Admin MAN 1");
-  const [authEmail, setAuthEmail] = useState("admin@man1balam.sch.id");
+  const [authEmail, setAuthEmail] = useState("admin@mansalase.sch.id");
   const [authPassword, setAuthPassword] = useState("dashboard-man1");
   const [authMessage, setAuthMessage] = useState("");
   const [isAuthSubmitting, setIsAuthSubmitting] = useState(false);
@@ -390,7 +390,7 @@ export function AdminExperience({ data }: AdminExperienceProps) {
         id: nextId,
         indicator: "Data Baru",
         category: "EMIS",
-        region: "MAN 1 Bandar Lampung",
+        region: "MAN 1 Lampung Selatan",
         period: "Tahunan",
         year: 2026,
         value: 0,
@@ -471,11 +471,11 @@ export function AdminExperience({ data }: AdminExperienceProps) {
       ...current,
       {
         id: nextId,
-        title: "Dataset Baru MAN 1 Bandar Lampung",
+        title: "Dataset Baru MAN 1 Lampung Selatan",
         description: "Deskripsi ringkas dataset untuk pengguna publik.",
         category: "Tata Kelola",
         year: 2026,
-        producer: "MAN 1 Bandar Lampung",
+        producer: "MAN 1 Lampung Selatan",
         frequency: "Tahunan",
         format: "XLSX, PDF",
         sourceUrl: "",
@@ -484,7 +484,7 @@ export function AdminExperience({ data }: AdminExperienceProps) {
         standardData:
           "Deskripsi standar data: kolom wilayah, indikator, nilai, satuan, dan tahun.",
         metadata:
-          "Sumber: MAN 1 Bandar Lampung\nVersi: 1\nFrekuensi: Tahunan\nDapat Diakses Publik: Ya",
+          "Sumber: MAN 1 Lampung Selatan\nVersi: 1\nFrekuensi: Tahunan\nDapat Diakses Publik: Ya",
       },
     ]);
   }
@@ -567,7 +567,7 @@ export function AdminExperience({ data }: AdminExperienceProps) {
               description: "Deskripsi singkat penghargaan.",
               year: new Date().getFullYear(),
               imageUrl: "",
-              alt: "Foto prestasi MAN 1 Bandar Lampung",
+              alt: "Foto prestasi MAN 1 Lampung Selatan",
             },
           ],
         };
@@ -1325,7 +1325,7 @@ function RowsPanel({
   const [uploadIndicator, setUploadIndicator] = useState(
     "Rekap Peserta Didik",
   );
-  const [uploadSource, setUploadSource] = useState("Rekap EMIS MAN 1 Bandar Lampung");
+  const [uploadSource, setUploadSource] = useState("Rekap EMIS MAN 1 Lampung Selatan");
   const [uploadMessage, setUploadMessage] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const categoryOptions = normalizeCategoryOptions(categories);
@@ -1420,11 +1420,11 @@ function RowsPanel({
                 if (value === "EMIS") {
                   setUploadUnit("siswa");
                   setUploadIndicator("Rekap Peserta Didik");
-                  setUploadSource("Rekap EMIS MAN 1 Bandar Lampung");
+                  setUploadSource("Rekap EMIS MAN 1 Lampung Selatan");
                 } else if (value === "SIMPEG") {
                   setUploadUnit("orang");
                   setUploadIndicator("Rekap Pegawai");
-                  setUploadSource("Rekap SIMPEG MAN 1 Bandar Lampung");
+                  setUploadSource("Rekap SIMPEG MAN 1 Lampung Selatan");
                 }
               }}
             />
@@ -1831,7 +1831,7 @@ function GeotaggingAdminPanel({
     <Card>
       <CardHeader className="flex-row items-start justify-between gap-4">
         <div>
-          <CardTitle>Lokasi MAN 1 Bandar Lampung</CardTitle>
+          <CardTitle>Lokasi MAN 1 Lampung Selatan</CardTitle>
           <CardDescription>
             Kelola alamat, koordinat, dan tautan Google Maps kampus madrasah.
           </CardDescription>
