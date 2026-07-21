@@ -61,13 +61,11 @@ Dashboard memiliki tiga permukaan yang memakai sumber data yang sama:
 
 ### 4.3 Panel Admin
 
-- Daftar/masuk/keluar dengan Better Auth.
-- Mengubah indikator dan tabel data.
-- Mengunggah CSV, Excel, PDF, DOC, atau DOCX sebagai draft data.
-- Mengelola dataset, jadwal rilis, profil/foto, publikasi, dan kontak.
-- Menyimpan perubahan ke API dashboard.
-- Ekspor JSON untuk cadangan.
-- Perubahan API wajib memiliki sesi admin.
+- Masuk/keluar dengan Better Auth; pendaftaran publik dinonaktifkan.
+- Mengubah nama pengguna dan password akun sendiri.
+- Mengubah teks header, hero, footer, alamat, peta, serta kontak kantor.
+- Memantau sinkronisasi otomatis EMIS/SIMPEG dan menjalankan sync pemulihan.
+- Tidak dapat upload file, mengimpor dokumen, atau mengubah angka secara manual.
 
 ### 4.4 Slideshow
 
@@ -131,9 +129,10 @@ integrasi membaca fallback dari database dashboard dan memberi status
 | Method | Endpoint | Akses | Fungsi |
 | --- | --- | --- | --- |
 | GET | `/api/dashboard` | Publik | Mengambil seluruh data dashboard |
-| PUT | `/api/dashboard` | Admin | Menyimpan snapshot dashboard |
-| POST | `/api/dashboard/import` | Admin | Membaca file rekap menjadi draft data |
-| POST | `/api/dashboard/files` | Admin | Menyimpan file yang diunggah |
+| PUT | `/api/admin/settings` | Admin | Menyimpan teks dan kontak publik |
+| POST | `/api/admin/sync/emis` | Admin | Menjalankan sync EMIS pemulihan |
+| POST | `/api/admin/sync/simpeg` | Admin | Menjalankan sync SIMPEG pemulihan |
+| POST | `/api/cron/sync` | Cron secret | Menjalankan sync otomatis |
 | GET | `/api/integrations/emis` | Publik | Adapter/fallback EMIS |
 | GET | `/api/integrations/simpeg` | Publik | Adapter/fallback SIMPEG |
 | ALL | `/api/auth/[...all]` | Sesuai Better Auth | Login dan sesi admin |
@@ -178,7 +177,8 @@ ditetapkan.
 ## 10. Autentikasi dan Keamanan
 
 - Better Auth menyimpan user, account, session, dan verification di database.
-- Perubahan data, impor, dan unggah file memerlukan sesi valid.
+- Perubahan profil/tampilan memerlukan sesi admin valid.
+- Endpoint cron memerlukan bearer secret server-side.
 - Token Turso, EMIS, dan SIMPEG hanya tersedia pada environment server.
 - File `.env.local` tidak masuk Git.
 - Secret pengembangan wajib diganti sebelum produksi.
@@ -212,8 +212,8 @@ pemetaan sumber resmi.
 | FR-06 | Menampilkan sumber dan status data | Tinggi |
 | FR-07 | Menampilkan slideshow dari data dashboard | Tinggi |
 | FR-08 | Login admin | Tinggi |
-| FR-09 | Admin menyimpan perubahan ke database | Tinggi |
-| FR-10 | Admin mengimpor file rekap | Sedang |
+| FR-09 | Admin mengelola akun dan tampilan publik | Tinggi |
+| FR-10 | Sinkronisasi otomatis menyimpan snapshot | Tinggi |
 | FR-11 | Adapter API EMIS/SIMPEG | Tinggi |
 | FR-12 | Kontak dan peta madrasah | Sedang |
 
@@ -232,7 +232,8 @@ pemetaan sumber resmi.
 - Halaman `/` menampilkan dua modul inti dan data dari database.
 - Halaman `/slideshow` memakai data yang sama dengan dashboard.
 - Halaman `/admin` menggunakan Better Auth.
-- `PUT /api/dashboard`, impor, dan unggah menolak pengguna tanpa sesi.
+- Endpoint pengaturan admin menolak pengguna tanpa sesi.
+- Endpoint upload/import tidak tersedia.
 - Endpoint EMIS/SIMPEG mengembalikan fallback saat upstream kosong.
 - Konfigurasi Turso tersedia dan SQLite lokal tetap bekerja.
 - Data contoh memiliki penanda yang jelas.

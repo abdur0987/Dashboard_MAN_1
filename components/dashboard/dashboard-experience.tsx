@@ -5,18 +5,15 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowUpRight,
-  BadgeCheck,
   BookOpenCheck,
   Building2,
   Database,
-  GraduationCap,
   IdCard,
   MapPin,
   Menu,
   MonitorPlay,
   RefreshCw,
   School,
-  ShieldCheck,
   Sparkles,
   Users,
   X,
@@ -25,9 +22,6 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -38,14 +32,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import type { DashboardData, DashboardRow } from "@/lib/types";
+import type { DashboardData, DashboardRow, DashboardSourceState } from "@/lib/types";
 
 type Module = "EMIS" | "SIMPEG";
 
 const navItems = [
   { label: "Beranda", href: "#beranda" },
   { label: "Data Utama", href: "#data-utama" },
-  { label: "Profil ASN", href: "#profil-asn" },
+  { label: "Profil Publik", href: "#profil-asn" },
   { label: "Integrasi", href: "#integrasi" },
   { label: "Slideshow", href: "/slideshow" },
   { label: "Admin", href: "/admin" },
@@ -80,13 +74,26 @@ export function DashboardExperience({ data: initialData }: { data: DashboardData
 
   const students = indicatorValue(data, "Peserta Didik");
   const studyGroups = indicatorValue(data, "Rombongan Belajar");
-  const gtk = indicatorValue(data, "Guru dan Tenaga Kependidikan");
-  const asn = indicatorValue(data, "Aparatur Sipil Negara");
-  const certified = indicatorValue(data, "ASN Tersertifikasi");
+  const identifiedProfiles = indicatorValue(data, "Profil teridentifikasi") || indicatorValue(data, "Guru dan Tenaga Kependidikan");
+  const simpeg = data.integration?.simpeg;
+  const emis = data.integration?.emis;
+  const employeeTotal = simpeg?.complete ? simpeg.employeesTotal ?? identifiedProfiles : identifiedProfiles;
+  const studentSourceName = emis?.sourceName ?? "EMIS";
+  const employeeSourceName = simpeg?.sourceName ?? "SIMPEG";
   const gradeRows = rowsByPrefix(data.rows, "Peserta Didik Kelas");
-  const genderRows = data.rows.filter((row) => /Laki-laki|Perempuan/i.test(row.indicator));
   const hasGradeData = gradeRows.some((row) => row.value > 0);
-  const hasGenderData = genderRows.some((row) => row.value > 0);
+  const hasGenderData = emis?.students.male != null && emis.students.female != null;
+  const mappedGradeTotal = gradeRows.reduce((total, row) => total + row.value, 0);
+  const unmappedGradeTotal = Math.max(0, students - mappedGradeTotal);
+  const localSource = data.integration?.sources.find((source) => source.code === "database");
+  const maleDifference = Math.max(
+    0,
+    (emis?.students.male ?? 0) - (localSource?.metrics.male ?? 0),
+  );
+  const femaleDifference = Math.max(
+    0,
+    (emis?.students.female ?? 0) - (localSource?.metrics.female ?? 0),
+  );
   const employmentRows = data.rows.filter((row) => ["PNS", "PPPK", "Non-ASN"].includes(row.indicator));
   const educationRows = data.rows.filter((row) => row.indicator.startsWith("Pendidikan"));
 
@@ -110,8 +117,8 @@ export function DashboardExperience({ data: initialData }: { data: DashboardData
               <span />
             </span>
             <span className="min-w-0">
-              <strong className="block truncate text-sm font-extrabold text-emerald-950 md:text-base">MAN 1 Lampung Selatan</strong>
-              <small className="block truncate text-[0.62rem] font-semibold uppercase tracking-[0.15em] text-emerald-800/65">Dashboard EMIS & SIMPEG</small>
+              <strong className="block truncate text-sm font-extrabold text-emerald-950 md:text-base">{data.siteSettings.headerInstitutionName}</strong>
+              <small className="block truncate text-[0.62rem] font-semibold uppercase tracking-[0.15em] text-emerald-800/65">{data.siteSettings.headerSubtitle}</small>
             </span>
           </Link>
 
@@ -140,13 +147,13 @@ export function DashboardExperience({ data: initialData }: { data: DashboardData
         </div>
         <div className="container relative grid min-h-[680px] items-center gap-10 py-20 lg:grid-cols-[1.12fr_.88fr]">
           <div className="max-w-3xl text-white">
-            <Badge className="mb-6 border-white/25 bg-white/12 text-emerald-50 backdrop-blur-xl">Satu Data Madrasah • Tahun Pelajaran 2026/2027</Badge>
+            <Badge className="mb-6 border-white/25 bg-white/12 text-emerald-50 backdrop-blur-xl">Satu Data Madrasah • {studentSourceName} • {emis?.period ?? "belum tersedia"}</Badge>
             <h1 className="max-w-3xl text-[2.85rem] font-black leading-[1.08] tracking-[-0.035em] sm:text-6xl sm:leading-[1.04] md:text-7xl">
-              <span className="block">Dashboard MAN 1</span>
+              <span className="block">{data.siteSettings.heroTitle}</span>
               {" "}
-              <span className="mt-2 block text-amber-300 sm:mt-3">Lampung Selatan</span>
+              <span className="mt-2 block text-amber-300 sm:mt-3">{data.siteSettings.heroHighlight}</span>
             </h1>
-            <p className="mt-7 max-w-2xl text-base leading-7 text-emerald-50/78 md:text-lg">Rekap profil sekolah dan siswa dari EMIS, dipadukan dengan profil dan statistik ASN dari SIMPEG untuk mendukung keputusan MAN 1 Lampung Selatan.</p>
+            <p className="mt-7 max-w-2xl text-base leading-7 text-emerald-50/78 md:text-lg">{data.siteSettings.heroDescription}</p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Button asChild size="lg" className="glass-button-shine bg-amber-400 text-emerald-950 hover:bg-amber-300"><Link href="#data-utama">Lihat data utama <ArrowUpRight className="h-4 w-4" /></Link></Button>
               <Button asChild size="lg" variant="outline" className="border-white/30 bg-white/10 text-white backdrop-blur-xl hover:bg-white/20"><Link href="/slideshow"><MonitorPlay className="h-4 w-4" /> Mode slideshow</Link></Button>
@@ -159,35 +166,35 @@ export function DashboardExperience({ data: initialData }: { data: DashboardData
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <CoreModuleCard icon={School} label="01 • EMIS" title="Sekolah & Siswa" value={students} unit="peserta didik" description="Profil satuan pendidikan, tingkat, gender, dan rombongan belajar." onClick={() => setActiveModule("EMIS")} />
-            <CoreModuleCard icon={IdCard} label="02 • SIMPEG" title="ASN & GTK" value={gtk} unit="pegawai" description="Status kepegawaian, pendidikan, sertifikasi, dan profil ASN." onClick={() => setActiveModule("SIMPEG")} />
+            <CoreModuleCard icon={School} label={`01 • ${studentSourceName}`} title="Sekolah & Siswa" value={students} unit="peserta didik" description={`Rekap peserta didik dan rombongan belajar periode ${emis?.period ?? "terbaru"}.`} onClick={() => setActiveModule("EMIS")} />
+            <CoreModuleCard icon={IdCard} label={`02 • ${employeeSourceName}`} title={simpeg?.complete ? "Guru & Tenaga Kependidikan" : "Profil teridentifikasi"} value={employeeTotal} unit={simpeg?.complete ? "GTK" : "profil pada snapshot"} description={simpeg?.complete ? "Agregat GTK berdasarkan NSM tanpa menyalin identitas pribadi." : "Temuan pada snapshot parsial, bukan total GTK atau ASN madrasah."} onClick={() => setActiveModule("SIMPEG")} />
             <div className="glass-panel col-span-full flex items-center gap-4 rounded-xl p-4 text-emerald-950">
               <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-emerald-900 text-amber-300"><Database className="h-5 w-5" /></div>
-              <div><p className="text-xs font-bold uppercase tracking-[.14em] text-emerald-800">Sumber aplikasi</p><p className="mt-1 text-sm text-slate-700">Turso/SQLite • Better Auth • Adapter API EMIS & SIMPEG aktif</p></div>
+              <div><p className="text-xs font-bold uppercase tracking-[.14em] text-emerald-800">Sumber aplikasi</p><p className="mt-1 text-sm text-slate-700">Snapshot lokal Turso/SQLite • sinkronisasi upstream hanya dari panel admin</p></div>
             </div>
           </div>
         </div>
       </section>
 
       <section className="section-shell">
-        <SectionHeading eyebrow="Ringkasan Eksekutif" title="Potret utama MAN 1" description="Identitas madrasah diverifikasi melalui EMIS, sedangkan profil ASN yang cocok dengan NPSN atau NSM dipetakan dari SIMPEG." />
-        <div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <SectionHeading eyebrow="Ringkasan Madrasah" title="Potret data terverifikasi" description="Angka selalu disertai periode, sumber, dan keterbatasan kualitas datanya." />
+        <div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard icon={Users} label="Peserta didik" value={students} suffix="siswa" tone="emerald" />
           <MetricCard icon={BookOpenCheck} label="Rombel" value={studyGroups} suffix="kelas" tone="cyan" />
-          <MetricCard icon={GraduationCap} label="GTK" value={gtk} suffix="orang" tone="blue" />
-          <MetricCard icon={ShieldCheck} label="ASN" value={asn} suffix="orang" tone="gold" />
-          <MetricCard icon={BadgeCheck} label="Tersertifikasi" value={certified} suffix="ASN" tone="violet" />
+          <MetricCard icon={IdCard} label={simpeg?.complete ? "GTK" : "Profil teridentifikasi"} value={employeeTotal} suffix={simpeg?.complete ? "guru dan tenaga kependidikan" : "bukan total GTK"} tone="blue" />
+          <MetricCard icon={Database} label={simpeg?.complete ? "Guru" : "Cakupan SIMPEG"} value={simpeg?.complete ? simpeg.teachersTotal ?? 0 : simpeg?.coverage ?? 0} suffix={simpeg?.complete ? `${simpeg.staffTotal ?? 0} tenaga kependidikan` : "% record upstream"} tone="gold" />
         </div>
         <div className="mt-4 flex items-start gap-3 rounded-lg border border-amber-200/80 bg-amber-50/70 p-4 text-sm leading-6 text-amber-950 backdrop-blur-xl">
           <Sparkles className="mt-0.5 h-4 w-4 shrink-0" />
-          <p><b>Status data:</b> identitas madrasah dan total peserta didik memakai referensi resmi. SIMPEG saat ini menemukan tiga profil yang cocok pada snapshot API; jumlah tersebut perlu divalidasi sebagai total pegawai. Rincian kelas, gender, rombel, non-ASN, dan sertifikasi belum tersedia.</p>
+          <p><b>Status data:</b> {studentSourceName} mencatat {students.toLocaleString("id-ID")} siswa dan {studyGroups.toLocaleString("id-ID")} rombel pada {emis?.period ?? "snapshot terbaru"}. {hasGenderData ? `Komposisi gender tersedia: ${emis?.students.male ?? 0} laki-laki dan ${emis?.students.female ?? 0} perempuan.` : "Agregat gender belum tersedia."} {hasGradeData ? `Data Lampung berhasil memetakan ${mappedGradeTotal} siswa ke tingkat X, XI, dan XII; ${unmappedGradeTotal} siswa belum terpetakan.` : "Rincian tingkat belum tersedia."} {simpeg?.complete ? `${employeeSourceName} mencatat ${employeeTotal.toLocaleString("id-ID")} GTK, terdiri dari ${simpeg.teachersTotal ?? 0} guru dan ${simpeg.staffTotal ?? 0} tenaga kependidikan.` : `SIMPEG menemukan ${identifiedProfiles} profil pada ${simpeg?.recordsReceived.toLocaleString("id-ID") ?? "-"} dari ${simpeg?.upstreamTotal?.toLocaleString("id-ID") ?? "-"} record upstream; angka tersebut bukan total pegawai.`}</p>
         </div>
+        {data.integration ? <SourceStatusGrid sources={data.integration.sources} /> : null}
       </section>
 
       <section id="data-utama" className="liquid-band border-y border-white/70">
         <div className="section-shell">
           <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
-            <SectionHeading eyebrow="Dua Sistem Inti" title="EMIS dan SIMPEG" description="Gunakan tab untuk berpindah antara data peserta didik dan data sumber daya manusia." />
+            <SectionHeading eyebrow="Dua Domain Data" title="Peserta didik dan GTK" description="Sumber setiap snapshot dapat berasal dari API resmi atau database mitra lokal yang sudah diagregasi." />
             <div className="glass-panel flex rounded-xl p-1.5">
               {(["EMIS", "SIMPEG"] as Module[]).map((module) => <button key={module} type="button" onClick={() => setActiveModule(module)} className={`min-w-32 rounded-lg px-5 py-3 text-sm font-bold transition ${activeModule === module ? "bg-emerald-800 text-white shadow-lg" : "text-slate-600 hover:bg-white/55"}`}><span className="mr-2 text-[.65rem] opacity-60">{module === "EMIS" ? "01" : "02"}</span>{module}</button>)}
             </div>
@@ -196,12 +203,12 @@ export function DashboardExperience({ data: initialData }: { data: DashboardData
           {activeModule === "EMIS" ? (
             <div className="mt-8 grid gap-5 lg:grid-cols-[1.2fr_.8fr]">
               <Card className="glass-panel overflow-hidden border-white/80">
-                <CardHeader><Badge variant="success" className="w-fit">EMIS • Peserta Didik</Badge><CardTitle>Rekap siswa per tingkat</CardTitle></CardHeader>
-                <CardContent>{hasGradeData ? <div className="h-[300px]"><ResponsiveContainer width="100%" height="100%"><BarChart data={gradeRows} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}><CartesianGrid strokeDasharray="4 6" vertical={false} stroke="#cbd5e1" /><XAxis dataKey="shortLabel" tick={{ fontSize: 12 }} /><YAxis tick={{ fontSize: 11 }} /><Tooltip cursor={{ fill: "rgba(16,185,129,.08)" }} /><Bar dataKey="value" name="Siswa" fill="#047857" radius={[8, 8, 0, 0]} /></BarChart></ResponsiveContainer></div> : <DataPending label="Rekap siswa per tingkat menunggu pemetaan endpoint EMIS." />}</CardContent>
+                <CardHeader><Badge variant="success" className="w-fit">{studentSourceName} • Peserta Didik</Badge><CardTitle>Rekap siswa per tingkat</CardTitle></CardHeader>
+                <CardContent>{hasGradeData ? <div className="grid gap-4"><div className="h-[300px]"><ResponsiveContainer width="100%" height="100%"><BarChart data={gradeRows} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}><CartesianGrid strokeDasharray="4 6" vertical={false} stroke="#cbd5e1" /><XAxis dataKey="shortLabel" tick={{ fontSize: 12 }} /><YAxis tick={{ fontSize: 11 }} /><Tooltip cursor={{ fill: "rgba(16,185,129,.08)" }} /><Bar dataKey="value" name="Siswa" fill="#047857" radius={[8, 8, 0, 0]} /></BarChart></ResponsiveContainer></div>{unmappedGradeTotal > 0 ? <div className="rounded-lg border border-amber-200 bg-amber-50/80 p-4 text-sm leading-6 text-amber-950"><strong>Mengapa ada selisih {unmappedGradeTotal} siswa?</strong><p className="mt-1">GIS mencatat {emis?.students.male ?? 0} laki-laki dan {emis?.students.female ?? 0} perempuan. Data Lampung yang berstatus aktif mencatat {localSource?.metrics.male ?? 0} laki-laki dan {localSource?.metrics.female ?? 0} perempuan. Selisihnya {maleDifference} laki-laki dan {femaleDifference} perempuan. Karena GIS publik tidak menyediakan daftar individu, dua siswa tersebut belum dapat ditentukan kelasnya secara pasti.</p></div> : null}</div> : <DataPending label="Rincian tingkat ditahan sampai klasifikasi status siswa konsisten dengan total rekap." />}</CardContent>
               </Card>
               <Card className="glass-panel overflow-hidden border-white/80">
-                <CardHeader><Badge variant="outline" className="w-fit">Komposisi Gender</Badge><CardTitle>{students.toLocaleString("id-ID")} peserta didik</CardTitle></CardHeader>
-                <CardContent>{hasGenderData ? <div className="grid items-center gap-4 sm:grid-cols-[1fr_.8fr] lg:grid-cols-1 xl:grid-cols-[1fr_.8fr]"><div className="h-[220px]"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={genderRows} dataKey="value" nameKey="indicator" innerRadius={58} outerRadius={90} paddingAngle={4}>{genderRows.map((row, index) => <Cell key={row.id} fill={index === 0 ? "#047857" : "#f59e0b"} />)}</Pie><Tooltip /></PieChart></ResponsiveContainer></div><div className="grid gap-3">{genderRows.map((row, index) => <LegendStat key={row.id} label={row.indicator.replace("Siswa ", "")} value={row.value} color={index === 0 ? "#047857" : "#f59e0b"} total={students} />)}</div></div> : <DataPending label="Komposisi gender menunggu rekap EMIS tervalidasi." />}</CardContent>
+                <CardHeader><Badge variant="outline" className="w-fit">Periode Snapshot</Badge><CardTitle>{emis?.period ?? "Data belum tersedia"}</CardTitle></CardHeader>
+                <CardContent className="grid gap-3 text-sm leading-6 text-slate-600"><p>Sumber aktif: {studentSourceName}. Total resmi yang dipakai adalah {students.toLocaleString("id-ID")} siswa dan {studyGroups.toLocaleString("id-ID")} rombel.</p><p>{hasGenderData ? `GIS menyediakan agregat ${emis?.students.male ?? 0} siswa laki-laki dan ${emis?.students.female ?? 0} siswa perempuan.` : "Agregat gender belum tersedia."}</p>{hasGradeData ? <p>Data Lampung memetakan Kelas X {emis?.students.grade10 ?? 0}, Kelas XI {emis?.students.grade11 ?? 0}, dan Kelas XII {emis?.students.grade12 ?? 0}. Total terpetakan {mappedGradeTotal}; selisih {unmappedGradeTotal} berasal dari perbedaan cakupan status aktif antara Data Lampung dan total publik GIS.</p> : <p>Rincian tingkat belum tersedia.</p>}</CardContent>
               </Card>
               <SchoolProfileCard />
               <IntegrationCard module="EMIS" endpoint="/api/integrations/emis" bullets={["Profil satuan pendidikan", "Rekap siswa, tingkat, dan rombel", "Fallback database saat API belum aktif"]} />
@@ -209,15 +216,15 @@ export function DashboardExperience({ data: initialData }: { data: DashboardData
           ) : (
             <div className="mt-8 grid gap-5 lg:grid-cols-[1.15fr_.85fr]">
               <Card className="glass-panel overflow-hidden border-white/80">
-                <CardHeader><Badge className="w-fit bg-amber-100 text-amber-900 hover:bg-amber-100">SIMPEG • Kepegawaian</Badge><CardTitle>Komposisi status pegawai</CardTitle></CardHeader>
+                <CardHeader><Badge className="w-fit bg-amber-100 text-amber-900 hover:bg-amber-100">{employeeSourceName} • {simpeg?.complete ? "GTK" : "Snapshot Parsial"}</Badge><CardTitle>{simpeg?.complete ? "Komposisi status GTK" : "Komposisi profil teridentifikasi"}</CardTitle></CardHeader>
                 <CardContent><div className="h-[300px]"><ResponsiveContainer width="100%" height="100%"><BarChart data={employmentRows} layout="vertical" margin={{ left: 15, right: 24 }}><CartesianGrid strokeDasharray="4 6" horizontal={false} stroke="#cbd5e1" /><XAxis type="number" tick={{ fontSize: 11 }} /><YAxis type="category" dataKey="indicator" width={74} tick={{ fontSize: 12 }} /><Tooltip /><Bar dataKey="value" name="Pegawai" fill="#d97706" radius={[0, 8, 8, 0]} /></BarChart></ResponsiveContainer></div></CardContent>
               </Card>
               <Card className="glass-panel overflow-hidden border-white/80">
-                <CardHeader><Badge variant="outline" className="w-fit">Kualifikasi</Badge><CardTitle>Pendidikan terakhir GTK</CardTitle></CardHeader>
-                <CardContent className="grid gap-4">{educationRows.map((row) => <ProgressStat key={row.id} label={row.indicator.replace("Pendidikan ", "")} value={row.value} total={gtk} />)}</CardContent>
+                <CardHeader><Badge variant="outline" className="w-fit">Kualifikasi Snapshot</Badge><CardTitle>Pendidikan GTK</CardTitle></CardHeader>
+                <CardContent className="grid gap-4">{educationRows.map((row) => <ProgressStat key={row.id} label={row.indicator.replace("Pendidikan ", "")} value={row.value} total={employeeTotal} />)}</CardContent>
               </Card>
               <Card className="glass-panel overflow-hidden border-white/80">
-                <CardContent className="grid gap-4 p-6 sm:grid-cols-3"><MiniStat label="Total GTK" value={gtk} /><MiniStat label="ASN" value={asn} /><MiniStat label="Tersertifikasi" value={certified} /></CardContent>
+                <CardContent className="grid gap-4 p-6 sm:grid-cols-3"><MiniStat label={simpeg?.complete ? "Total GTK" : "Profil teridentifikasi"} value={employeeTotal} /><MiniStat label={simpeg?.complete ? "Guru / calon guru" : "Record diterima"} value={simpeg?.complete ? simpeg.teachersTotal ?? 0 : simpeg?.recordsReceived ?? 0} /><MiniStat label={simpeg?.complete ? "Tenaga kependidikan" : "Total upstream"} value={simpeg?.complete ? simpeg.staffTotal ?? 0 : simpeg?.upstreamTotal ?? 0} /></CardContent>
               </Card>
               <IntegrationCard module="SIMPEG" endpoint="/api/integrations/simpeg" bullets={["Profil ASN tanpa data sensitif", "Status PNS dan PPPK", "Kualifikasi pendidikan"]} />
             </div>
@@ -225,20 +232,20 @@ export function DashboardExperience({ data: initialData }: { data: DashboardData
 
           <Card className="glass-panel mt-5 overflow-hidden border-white/80">
             <CardHeader className="flex-row items-center justify-between gap-4"><div><Badge variant="outline" className="mb-2">Tabel sumber</Badge><CardTitle>{activeModule} • Data ringkas</CardTitle></div><span className="text-xs text-slate-500">{moduleRows.length} baris</span></CardHeader>
-            <CardContent className="overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Indikator</TableHead><TableHead>Periode</TableHead><TableHead className="text-right">Nilai</TableHead><TableHead>Sumber</TableHead></TableRow></TableHeader><TableBody>{moduleRows.map((row) => <TableRow key={row.id}><TableCell className="font-semibold">{row.indicator}</TableCell><TableCell>{row.year}</TableCell><TableCell className="text-right font-bold">{row.value.toLocaleString("id-ID")} {row.unit}</TableCell><TableCell className="text-xs text-slate-500">{row.source}</TableCell></TableRow>)}</TableBody></Table></CardContent>
+            <CardContent className="overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Indikator</TableHead><TableHead>Periode</TableHead><TableHead className="text-right">Nilai</TableHead><TableHead>Sumber</TableHead></TableRow></TableHeader><TableBody>{moduleRows.map((row) => <TableRow key={row.id}><TableCell className="font-semibold">{row.indicator}</TableCell><TableCell>{row.period}</TableCell><TableCell className="text-right font-bold">{row.value.toLocaleString("id-ID")} {row.unit}</TableCell><TableCell className="text-xs text-slate-500">{row.source}</TableCell></TableRow>)}</TableBody></Table></CardContent>
           </Card>
         </div>
       </section>
 
       <section id="profil-asn" className="section-shell">
-        <SectionHeading eyebrow="Profil ASN" title="Penggerak madrasah" description="Kepala madrasah memakai dokumentasi resmi terbaru; profil guru dipetakan dari data aman SIMPEG dan ditandai sebagai snapshot yang perlu divalidasi." />
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{data.activities.slice(0, 4).map((person, index) => <article key={person.id} className={`glass-panel group overflow-hidden rounded-xl ${index === 0 ? "sm:col-span-2 lg:col-span-1" : ""}`}><div className={`relative aspect-[4/5] overflow-hidden ${person.imageUrl.endsWith("/logo.png") ? "bg-white/70" : ""}`}><Image src={person.imageUrl} alt={person.title} fill className={person.imageUrl.endsWith("/logo.png") ? "object-contain p-8 transition duration-500 group-hover:scale-[1.03]" : "object-cover object-left transition duration-500 group-hover:scale-[1.03]"} /><div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-emerald-950/85 to-transparent" /><Badge className="absolute right-3 top-3 border-white/30 bg-white/80 text-emerald-900 backdrop-blur-xl">ASN</Badge></div><div className="p-5"><p className="text-[.65rem] font-bold uppercase tracking-[.16em] text-emerald-700">{person.caption}</p><h3 className="mt-2 text-lg font-extrabold leading-snug">{person.title}</h3></div></article>)}</div>
+        <SectionHeading eyebrow="Profil Publik" title="Penggerak madrasah" description="Profil yang ditampilkan berasal dari konten resmi yang dikelola admin, bukan dari tabel mentah pegawai." />
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{data.activities.slice(0, 4).map((person, index) => <article key={person.id} className={`glass-panel group overflow-hidden rounded-xl ${index === 0 ? "sm:col-span-2 lg:col-span-1" : ""}`}><div className={`relative aspect-[4/5] overflow-hidden ${person.imageUrl.endsWith("/logo.png") ? "bg-white/70" : ""}`}><Image src={person.imageUrl} alt={person.title} fill className={person.imageUrl.endsWith("/logo.png") ? "object-contain p-8 transition duration-500 group-hover:scale-[1.03]" : "object-cover object-left transition duration-500 group-hover:scale-[1.03]"} /><div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-emerald-950/85 to-transparent" /><Badge className="absolute right-3 top-3 border-white/30 bg-white/80 text-emerald-900 backdrop-blur-xl">Konten Resmi</Badge></div><div className="p-5"><p className="text-[.65rem] font-bold uppercase tracking-[.16em] text-emerald-700">{person.caption}</p><h3 className="mt-2 text-lg font-extrabold leading-snug">{person.title}</h3></div></article>)}</div>
       </section>
 
       <section id="integrasi" className="border-y border-white/20 bg-emerald-950 text-white">
         <div className="container grid gap-10 py-16 lg:grid-cols-[.75fr_1.25fr] lg:items-center">
           <div><p className="text-xs font-bold uppercase tracking-[.2em] text-amber-300">Arsitektur Backend</p><h2 className="mt-4 text-4xl font-black tracking-tight">Siap dari data contoh<br />ke sumber resmi.</h2><p className="mt-5 max-w-lg text-sm leading-7 text-emerald-100/65">Drizzle menyimpan konten pada Turso/libSQL untuk produksi dan SQLite untuk pengembangan lokal. Better Auth melindungi perubahan data di panel admin.</p></div>
-          <div className="grid gap-3 md:grid-cols-[1fr_auto_1fr_auto_1fr] md:items-center"><FlowStep number="01" title="EMIS & SIMPEG" text="Sumber resmi" /><span className="hidden text-amber-300 md:block">→</span><FlowStep number="02" title="Adapter API" text="Validasi & pemetaan" /><span className="hidden text-amber-300 md:block">→</span><FlowStep number="03" title="Turso Database" text="Dashboard & admin" /></div>
+          <div className="grid gap-3 md:grid-cols-[1fr_auto_1fr_auto_1fr] md:items-center"><FlowStep number="01" title="API & database mitra" text="Sumber data server-side" /><span className="hidden text-amber-300 md:block">→</span><FlowStep number="02" title="View agregat" text="Validasi & minimisasi data" /><span className="hidden text-amber-300 md:block">→</span><FlowStep number="03" title="SQLite / Turso" text="Snapshot dashboard" /></div>
         </div>
       </section>
 
@@ -247,7 +254,7 @@ export function DashboardExperience({ data: initialData }: { data: DashboardData
         <div className="glass-panel overflow-hidden rounded-xl border-white/80 p-2"><iframe title="Lokasi MAN 1 Lampung Selatan" src={data.contact.mapEmbedUrl} className="h-[320px] w-full rounded-lg border-0" loading="lazy" /></div>
       </section>
 
-      <footer className="border-t border-white/10 bg-slate-950 text-white"><div className="container flex flex-col gap-6 py-9 md:flex-row md:items-center md:justify-between"><div className="flex items-center gap-3"><Image src="/brand/man1/logo.png" alt="" width={44} height={44} className="h-11 w-11 object-contain" /><div><p className="font-bold">Dashboard MAN 1 Lampung Selatan</p><p className="text-xs text-slate-400">EMIS • SIMPEG • Satu Data Madrasah</p></div></div><p className="max-w-lg text-xs leading-5 text-slate-400">Versi awal berfokus pada profil sekolah, peserta didik, serta profil dan statistik ASN. Data rinci yang belum tersedia ditampilkan sebagai menunggu validasi.</p></div></footer>
+      <footer className="border-t border-white/10 bg-slate-950 text-white"><div className="container grid gap-6 py-9 md:grid-cols-[1fr_1.2fr] md:items-center"><div className="flex items-center gap-3"><Image src="/brand/man1/logo.png" alt="" width={44} height={44} className="h-11 w-11 object-contain" /><div><p className="font-bold">{data.siteSettings.footerTitle}</p><p className="text-xs text-slate-400">{data.siteSettings.footerSubtitle}</p></div></div><div className="grid gap-2 text-xs leading-5 text-slate-400 md:text-right"><p>{data.siteSettings.footerDescription}</p><p className="font-semibold text-slate-300">{data.contact.address} • {data.contact.phone}</p></div></div></footer>
     </main>
   );
 }
@@ -278,13 +285,23 @@ function DataPending({ label }: { label: string }) {
   return <div className="grid min-h-[220px] place-items-center rounded-xl border border-dashed border-emerald-200 bg-emerald-50/50 p-6 text-center"><div><Database className="mx-auto h-8 w-8 text-emerald-700" /><p className="mt-3 text-sm font-semibold text-emerald-950">Data belum ditampilkan</p><p className="mt-1 max-w-sm text-xs leading-5 text-slate-600">{label}</p></div></div>;
 }
 
-function LegendStat({ label, value, total, color }: { label: string; value: number; total: number; color: string }) {
-  return <div className="flex items-center gap-3 rounded-lg border border-white/80 bg-white/45 p-3 backdrop-blur-xl"><span className="h-2.5 w-2.5 rounded-full" style={{ background: color }} /><div><p className="text-xs text-slate-500">{label}</p><p className="font-extrabold">{value.toLocaleString("id-ID")}</p></div><span className="ml-auto text-xs font-bold text-slate-500">{Math.round(value / Math.max(total, 1) * 100)}%</span></div>;
-}
-
 function ProgressStat({ label, value, total }: { label: string; value: number; total: number }) {
   const percentage = Math.round(value / Math.max(total, 1) * 100);
-  return <div><div className="flex justify-between text-sm"><span className="font-semibold">{label}</span><strong>{value}</strong></div><div className="mt-2 h-2.5 overflow-hidden rounded-full bg-emerald-100"><span className="block h-full rounded-full bg-gradient-to-r from-emerald-700 to-amber-400" style={{ width: `${percentage}%` }} /></div><p className="mt-1 text-right text-[.65rem] text-slate-500">{percentage}% dari GTK</p></div>;
+  return <div><div className="flex justify-between text-sm"><span className="font-semibold">{label}</span><strong>{value}</strong></div><div className="mt-2 h-2.5 overflow-hidden rounded-full bg-emerald-100"><span className="block h-full rounded-full bg-gradient-to-r from-emerald-700 to-amber-400" style={{ width: `${percentage}%` }} /></div><p className="mt-1 text-right text-[.65rem] text-slate-500">{percentage}% dari profil teridentifikasi</p></div>;
+}
+
+function SourceStatusGrid({ sources }: { sources: DashboardSourceState[] }) {
+  return <div className="mt-4 grid gap-3 md:grid-cols-3">{sources.map((source) => <Card key={source.code} className="glass-panel border-white/80"><CardContent className="flex items-start justify-between gap-4 p-4"><div><p className="text-xs font-black uppercase tracking-[.14em] text-slate-500">{source.name}</p><p className="mt-2 text-sm font-semibold text-slate-900">{source.period ?? "Read model lokal"}</p><p className="mt-1 text-xs text-slate-500">{source.lastUpdated ? formatSourceTime(source.lastUpdated) : "Belum pernah diperbarui"}</p></div><Badge variant={source.status === "fresh" ? "success" : "outline"}>{sourceStatusLabel(source.status)}</Badge></CardContent></Card>)}</div>;
+}
+
+function sourceStatusLabel(status: DashboardSourceState["status"]) {
+  return ({ fresh: "Fresh", stale: "Stale", fallback: "Fallback", syncing: "Syncing", failed: "Failed", not_configured: "Belum dikonfigurasi" })[status];
+}
+
+function formatSourceTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("id-ID", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Jakarta" }).format(date);
 }
 
 function MiniStat({ label, value }: { label: string; value: string | number }) {

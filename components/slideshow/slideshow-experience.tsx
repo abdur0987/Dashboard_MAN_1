@@ -11,7 +11,7 @@ const slides = [
   { id: "overview", label: "Ringkasan", duration: 10000 },
   { id: "emis", label: "EMIS", duration: 11000 },
   { id: "simpeg", label: "SIMPEG", duration: 11000 },
-  { id: "profiles", label: "Profil ASN", duration: 13000 },
+  { id: "profiles", label: "Profil Publik", duration: 13000 },
 ] as const;
 
 export function SlideShowExperience({ data: initialData, onClose }: { data: DashboardData; onClose?: () => void }) {
@@ -56,9 +56,14 @@ export function SlideShowExperience({ data: initialData, onClose }: { data: Dash
   const totals = useMemo(() => ({
     students: valueOf(data, "Peserta Didik"),
     studyGroups: valueOf(data, "Rombongan Belajar"),
-    gtk: valueOf(data, "Guru dan Tenaga Kependidikan"),
-    asn: valueOf(data, "Aparatur Sipil Negara"),
-    certified: valueOf(data, "ASN Tersertifikasi"),
+    identifiedProfiles: data.integration?.simpeg?.complete
+      ? data.integration.simpeg.employeesTotal ?? 0
+      : valueOf(data, "Profil teridentifikasi") || valueOf(data, "Guru dan Tenaga Kependidikan"),
+    simpegReceived: data.integration?.simpeg?.recordsReceived ?? 0,
+    simpegUpstream: data.integration?.simpeg?.upstreamTotal ?? 0,
+    teachers: data.integration?.simpeg?.teachersTotal ?? 0,
+    staff: data.integration?.simpeg?.staffTotal ?? 0,
+    employeeComplete: data.integration?.simpeg?.complete ?? false,
   }), [data]);
 
   const gradeRows = data.rows.filter((row) => row.indicator.startsWith("Peserta Didik Kelas")).map((row) => ({ label: row.indicator.replace("Peserta Didik ", ""), value: row.value }));
@@ -82,15 +87,15 @@ export function SlideShowExperience({ data: initialData, onClose }: { data: Dash
 
       <div className="relative grid min-h-screen grid-rows-[auto_1fr_auto] p-4 md:p-6">
         <header className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur-2xl">
-          <div className="flex items-center gap-3"><span className="grid h-11 w-11 place-items-center rounded-xl bg-white/90"><Image src="/brand/man1/logo.png" alt="" width={42} height={42} className="h-10 w-10 object-contain" /></span><div><strong className="block text-sm">Dashboard MAN 1 Lampung Selatan</strong><small className="text-[.62rem] font-bold uppercase tracking-[.16em] text-emerald-200/70">Live Presentation • EMIS & SIMPEG</small></div></div>
+          <div className="flex items-center gap-3"><span className="grid h-11 w-11 place-items-center rounded-xl bg-white/90"><Image src="/brand/man1/logo.png" alt="" width={42} height={42} className="h-10 w-10 object-contain" /></span><div><strong className="block text-sm">Dashboard MAN 1 Lampung Selatan</strong><small className="text-[.62rem] font-bold uppercase tracking-[.16em] text-emerald-200/70">Live Presentation • Snapshot Agregat</small></div></div>
           <div className="hidden items-center gap-2 lg:flex">{slides.map((slide, index) => <button key={slide.id} type="button" onClick={() => setActiveIndex(index)} className={`rounded-full border px-4 py-2 text-xs font-bold transition ${activeIndex === index ? "border-amber-300 bg-amber-300 text-emerald-950" : "border-white/15 bg-white/5 text-white/55 hover:bg-white/10"}`}>{slide.label}</button>)}</div>
           <div className="flex items-center gap-2"><span className="hidden text-right sm:block"><strong className="block text-sm tabular-nums">{clock?.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) ?? "--.--"}</strong><small className="text-[.6rem] uppercase tracking-wider text-white/45">WIB • Data tersinkron</small></span><ControlButton label="Tutup" onClick={close}><X className="h-4 w-4" /></ControlButton></div>
         </header>
 
         <section className="grid min-h-0 place-items-center py-5 md:py-8">
           {activeSlide.id === "overview" ? <OverviewSlide totals={totals} /> : null}
-          {activeSlide.id === "emis" ? <DataSlide eyebrow="01 • EMIS" title="Profil sekolah dan peserta didik" description="Rekap tingkat dan rombongan belajar dalam satu tampilan pimpinan." total={totals.students} totalLabel="peserta didik" icon={<School className="h-7 w-7" />} data={gradeRows} color="#34d399" source="EMIS / database dashboard" /> : null}
-          {activeSlide.id === "simpeg" ? <DataSlide eyebrow="02 • SIMPEG" title="Profil dan statistik ASN" description="Komposisi pegawai untuk pemetaan kapasitas sumber daya manusia." total={totals.gtk} totalLabel="GTK" icon={<Users className="h-7 w-7" />} data={employmentRows} color="#fbbf24" source="SIMPEG / database dashboard" /> : null}
+          {activeSlide.id === "emis" ? <DataSlide eyebrow={`01 • ${data.integration?.emis?.sourceName ?? "EMIS"}`} title="Profil sekolah dan peserta didik" description={`Rekap peserta didik dan rombongan belajar periode ${data.integration?.emis?.period ?? "terbaru"}.`} total={totals.students} totalLabel="peserta didik" icon={<School className="h-7 w-7" />} data={gradeRows} color="#34d399" source={`${data.integration?.emis?.sourceName ?? "EMIS"} • ${data.integration?.emis?.period ?? "-"}`} /> : null}
+          {activeSlide.id === "simpeg" ? <DataSlide eyebrow={`02 • ${data.integration?.simpeg?.sourceName ?? "SIMPEG"}`} title={totals.employeeComplete ? "Guru dan tenaga kependidikan" : "Profil teridentifikasi"} description={totals.employeeComplete ? `${totals.teachers} guru dan ${totals.staff} tenaga kependidikan; total dan status pegawai dari database lokal, klasifikasi publik dari GIS Kemenag.` : `Temuan pada ${totals.simpegReceived.toLocaleString("id-ID")} dari ${totals.simpegUpstream.toLocaleString("id-ID")} record upstream; bukan total pegawai.`} total={totals.identifiedProfiles} totalLabel={totals.employeeComplete ? "GTK" : "profil pada snapshot parsial"} icon={<Users className="h-7 w-7" />} data={employmentRows} color="#fbbf24" source={data.integration?.simpeg?.sourceName ?? "SIMPEG"} /> : null}
           {activeSlide.id === "profiles" ? <ProfilesSlide data={data} /> : null}
         </section>
 
@@ -104,8 +109,8 @@ export function SlideShowExperience({ data: initialData, onClose }: { data: Dash
   );
 }
 
-function OverviewSlide({ totals }: { totals: { students: number; studyGroups: number; gtk: number; asn: number; certified: number } }) {
-  return <div className="grid w-full max-w-7xl gap-5 lg:grid-cols-[1.05fr_.95fr] lg:items-center"><div><p className="text-xs font-black uppercase tracking-[.22em] text-amber-300">Satu Data Madrasah • 2026</p><h1 className="mt-5 text-5xl font-black leading-[.98] tracking-[-.055em] md:text-7xl">Data yang utuh.<br /><span className="text-emerald-300">Keputusan yang tepat.</span></h1><p className="mt-6 max-w-2xl text-base leading-7 text-emerald-50/65">Dashboard pimpinan MAN 1 Lampung Selatan yang menghubungkan rekap EMIS dan statistik SIMPEG.</p><div className="mt-8 flex items-center gap-3 rounded-xl border border-white/15 bg-white/10 p-4 backdrop-blur-xl"><Database className="h-5 w-5 text-amber-300" /><span className="text-sm text-emerald-100/75">Satu sumber data untuk dashboard publik, panel admin, dan slideshow.</span></div></div><div className="grid gap-4 sm:grid-cols-2"><HeroStat label="Peserta Didik" value={totals.students} suffix="siswa" /><HeroStat label="Rombongan Belajar" value={totals.studyGroups} suffix="rombel" /><HeroStat label="Guru & Tendik" value={totals.gtk} suffix="GTK" /><HeroStat label="ASN" value={totals.asn} suffix={`${totals.certified} tersertifikasi`} /></div></div>;
+function OverviewSlide({ totals }: { totals: { students: number; studyGroups: number; identifiedProfiles: number; simpegReceived: number; simpegUpstream: number; teachers: number; staff: number; employeeComplete: boolean } }) {
+  return <div className="grid w-full max-w-7xl gap-5 lg:grid-cols-[1.05fr_.95fr] lg:items-center"><div><p className="text-xs font-black uppercase tracking-[.22em] text-amber-300">Satu Data Madrasah • Snapshot Terverifikasi</p><h1 className="mt-5 text-5xl font-black leading-[.98] tracking-[-.055em] md:text-7xl">Data yang jelas.<br /><span className="text-emerald-300">Cakupan yang jujur.</span></h1><p className="mt-6 max-w-2xl text-base leading-7 text-emerald-50/65">Dashboard MAN 1 Lampung Selatan menampilkan agregat aman beserta periode, sumber, dan keterbatasannya.</p><div className="mt-8 flex items-center gap-3 rounded-xl border border-white/15 bg-white/10 p-4 backdrop-blur-xl"><Database className="h-5 w-5 text-amber-300" /><span className="text-sm text-emerald-100/75">Dashboard publik, admin, dan slideshow membaca snapshot lokal yang sama.</span></div></div><div className="grid gap-4 sm:grid-cols-2"><HeroStat label="Peserta Didik" value={totals.students} suffix="siswa" /><HeroStat label="Rombongan Belajar" value={totals.studyGroups} suffix="rombel" /><HeroStat label={totals.employeeComplete ? "GTK" : "Profil teridentifikasi"} value={totals.identifiedProfiles} suffix={totals.employeeComplete ? "agregat lokal" : "bukan total GTK"} /><HeroStat label={totals.employeeComplete ? "Guru / Tendik" : "Record SIMPEG"} value={totals.employeeComplete ? totals.teachers : totals.simpegReceived} suffix={totals.employeeComplete ? `${totals.staff} tenaga kependidikan` : `dari ${totals.simpegUpstream.toLocaleString("id-ID")} upstream`} /></div></div>;
 }
 
 function DataSlide({ eyebrow, title, description, total, totalLabel, icon, data, color, source }: { eyebrow: string; title: string; description: string; total: number; totalLabel: string; icon: React.ReactNode; data: { label: string; value: number }[]; color: string; source: string }) {
@@ -114,7 +119,7 @@ function DataSlide({ eyebrow, title, description, total, totalLabel, icon, data,
 }
 
 function ProfilesSlide({ data }: { data: DashboardData }) {
-  return <div className="w-full max-w-7xl"><div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-end"><div><p className="text-xs font-black uppercase tracking-[.2em] text-amber-300">Profil ASN</p><h1 className="mt-3 text-4xl font-black tracking-tight md:text-5xl">Penggerak MAN 1 Lampung Selatan</h1></div><p className="max-w-md text-sm leading-6 text-emerald-50/55">Profil ditarik dari sumber dashboard yang sama; profil guru dari SIMPEG ditampilkan tanpa data pribadi sensitif.</p></div><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{data.activities.slice(0, 4).map((person) => <article key={person.id} className="overflow-hidden rounded-2xl border border-white/15 bg-white/10 backdrop-blur-2xl"><div className={`relative aspect-[4/5] ${person.imageUrl.endsWith("/logo.png") ? "bg-white/90" : ""}`}><Image src={person.imageUrl} alt={person.title} fill className={person.imageUrl.endsWith("/logo.png") ? "object-contain p-8" : "object-cover object-left"} /><div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#031f19] to-transparent" /></div><div className="p-5"><p className="text-[.62rem] font-black uppercase tracking-[.15em] text-amber-300">{person.caption}</p><h2 className="mt-2 text-lg font-extrabold leading-snug">{person.title}</h2></div></article>)}</div></div>;
+  return <div className="w-full max-w-7xl"><div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-end"><div><p className="text-xs font-black uppercase tracking-[.2em] text-amber-300">Profil Publik</p><h1 className="mt-3 text-4xl font-black tracking-tight md:text-5xl">Penggerak MAN 1 Lampung Selatan</h1></div><p className="max-w-md text-sm leading-6 text-emerald-50/55">Profil berasal dari konten resmi yang dikelola admin, bukan daftar pegawai mentah.</p></div><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{data.activities.slice(0, 4).map((person) => <article key={person.id} className="overflow-hidden rounded-2xl border border-white/15 bg-white/10 backdrop-blur-2xl"><div className={`relative aspect-[4/5] ${person.imageUrl.endsWith("/logo.png") ? "bg-white/90" : ""}`}><Image src={person.imageUrl} alt={person.title} fill className={person.imageUrl.endsWith("/logo.png") ? "object-contain p-8" : "object-cover object-left"} /><div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#031f19] to-transparent" /></div><div className="p-5"><p className="text-[.62rem] font-black uppercase tracking-[.15em] text-amber-300">{person.caption}</p><h2 className="mt-2 text-lg font-extrabold leading-snug">{person.title}</h2></div></article>)}</div></div>;
 }
 
 function HeroStat({ label, value, suffix }: { label: string; value: number; suffix: string }) {

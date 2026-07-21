@@ -10,17 +10,23 @@ import * as schema from "@/lib/db/schema";
 const databasePath =
   process.env.SQLITE_DB_PATH ?? path.join(process.cwd(), "data", "dashboard.sqlite");
 const tursoDatabaseUrl = process.env.TURSO_DATABASE_URL;
+const configuredMode = process.env.DATABASE_MODE?.trim().toLowerCase();
+const useTurso = configuredMode === "turso" || (configuredMode !== "sqlite" && Boolean(tursoDatabaseUrl));
 
-export const databaseDriver = tursoDatabaseUrl ? "turso" : "sqlite";
+if (configuredMode === "turso" && !tursoDatabaseUrl) {
+  throw new Error("DATABASE_MODE=turso memerlukan TURSO_DATABASE_URL.");
+}
 
-export const libsql = tursoDatabaseUrl
+export const databaseDriver = useTurso ? "turso" : "sqlite";
+
+export const libsql = useTurso
   ? createClient({
-      url: tursoDatabaseUrl,
+      url: tursoDatabaseUrl as string,
       authToken: process.env.TURSO_AUTH_TOKEN,
     })
   : null;
 
-export const sqlite = tursoDatabaseUrl ? null : createLocalSqlite(databasePath);
+export const sqlite = useTurso ? null : createLocalSqlite(databasePath);
 
 export const db = libsql
   ? drizzleLibsql(libsql, { schema })

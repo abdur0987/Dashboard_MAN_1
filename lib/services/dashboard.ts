@@ -2,7 +2,8 @@ import { asc } from "drizzle-orm";
 
 import { db } from "@/lib/db/client";
 import { ensureDatabaseReady } from "@/lib/db/migrate";
-import { clearIntegrationCache, getIntegratedDashboardData } from "@/lib/integrations/upstream";
+import { getIntegrationReadState } from "@/lib/repositories/integration-repository";
+import { buildUnifiedDashboardData } from "@/lib/services/unified-dashboard";
 import {
   activities as activitiesTable,
   awardCollections as awardCollectionsTable,
@@ -17,26 +18,25 @@ import {
   officeLocations as officeLocationsTable,
   publications as publicationsTable,
   releaseSchedules as releaseSchedulesTable,
+  siteSettings as siteSettingsTable,
   videos as videosTable,
 } from "@/lib/db/schema";
-import type { ChartPoint, DashboardData, DashboardRow } from "@/lib/types";
+import type { ChartPoint, ContactInfo, DashboardData, DashboardRow, SiteSettings } from "@/lib/types";
 
 export const seedDashboardData: DashboardData = {
   indicators: [
-    { id: 1, name: "Peserta Didik", description: "Total peserta didik pada referensi satuan pendidikan dan akan diperbarui dari rekap EMIS.", category: "EMIS", unit: "siswa", source: "Referensi Kemendikdasmen / EMIS", year: 2026, value: 211, trend: 0, status: "aktif" },
-    { id: 2, name: "Rombongan Belajar", description: "Rombongan belajar kelas X, XI, dan XII menunggu pemetaan respons EMIS.", category: "EMIS", unit: "rombel", source: "Menunggu rekap EMIS", year: 2026, value: 0, trend: 0, status: "perlu-validasi" },
-    { id: 3, name: "Guru dan Tenaga Kependidikan", description: "Profil GTK yang cocok dengan NPSN atau NSM pada respons SIMPEG.", category: "SIMPEG", unit: "orang", source: "SIMPEG API / snapshot awal", year: 2026, value: 3, trend: 0, status: "perlu-validasi" },
-    { id: 4, name: "Aparatur Sipil Negara", description: "PNS dan PPPK yang berhasil dipetakan melalui SIMPEG.", category: "SIMPEG", unit: "orang", source: "SIMPEG API / snapshot awal", year: 2026, value: 3, trend: 0, status: "perlu-validasi" },
-    { id: 5, name: "ASN Tersertifikasi", description: "Jumlah ASN tersertifikasi menunggu field sertifikasi dari API.", category: "SIMPEG", unit: "orang", source: "Menunggu pemetaan SIMPEG", year: 2026, value: 0, trend: 0, status: "perlu-validasi" },
+    { id: 1, name: "Peserta Didik", description: "Total peserta didik terisi pada periode 2025/2026 Genap.", category: "EMIS", unit: "siswa", source: "EMIS snapshot • 2025/2026 Genap", year: 2026, value: 301, trend: 0, status: "aktif" },
+    { id: 2, name: "Rombongan Belajar", description: "Total rombongan belajar pada periode 2025/2026 Genap.", category: "EMIS", unit: "rombel", source: "EMIS snapshot • 2025/2026 Genap", year: 2026, value: 13, trend: 0, status: "aktif" },
+    { id: 3, name: "Profil teridentifikasi", description: "Tiga profil ditemukan pada snapshot 500 record pertama; bukan total GTK.", category: "SIMPEG", unit: "profil", source: "SIMPEG • snapshot parsial", year: 2026, value: 3, trend: 0, status: "perlu-validasi" },
+    { id: 4, name: "Profil ASN teridentifikasi", description: "Profil ASN teridentifikasi pada snapshot parsial; bukan total ASN.", category: "SIMPEG", unit: "profil", source: "SIMPEG • snapshot parsial", year: 2026, value: 3, trend: 0, status: "perlu-validasi" },
+    { id: 5, name: "Sertifikasi ASN", description: "Data sertifikasi belum tersedia dari endpoint resmi.", category: "SIMPEG", unit: "status", source: "SIMPEG • data belum tersedia", year: 2026, value: 0, trend: 0, status: "perlu-validasi" },
     { id: 6, name: "Akreditasi Madrasah", description: "Status akreditasi MAN 1 Lampung Selatan.", category: "EMIS", unit: "nilai", source: "Referensi resmi MAN 1 Lampung Selatan", year: 2026, value: 2, trend: 0, status: "aktif" },
   ],
   rows: [
-    { id: 1, indicator: "Peserta Didik Kelas X", category: "EMIS", region: "MAN 1 Lampung Selatan", period: "Tahunan", year: 2026, value: 0, unit: "siswa", source: "Menunggu pemetaan rekap EMIS" },
-    { id: 2, indicator: "Peserta Didik Kelas XI", category: "EMIS", region: "MAN 1 Lampung Selatan", period: "Tahunan", year: 2026, value: 0, unit: "siswa", source: "Menunggu pemetaan rekap EMIS" },
-    { id: 3, indicator: "Peserta Didik Kelas XII", category: "EMIS", region: "MAN 1 Lampung Selatan", period: "Tahunan", year: 2026, value: 0, unit: "siswa", source: "Menunggu pemetaan rekap EMIS" },
-    { id: 4, indicator: "Siswa Laki-laki", category: "EMIS", region: "MAN 1 Lampung Selatan", period: "Tahunan", year: 2026, value: 0, unit: "siswa", source: "Menunggu pemetaan rekap EMIS" },
-    { id: 5, indicator: "Siswa Perempuan", category: "EMIS", region: "MAN 1 Lampung Selatan", period: "Tahunan", year: 2026, value: 0, unit: "siswa", source: "Menunggu pemetaan rekap EMIS" },
-    { id: 6, indicator: "PNS", category: "SIMPEG", region: "MAN 1 Lampung Selatan", period: "Tahunan", year: 2026, value: 3, unit: "orang", source: "SIMPEG API / snapshot awal" },
+    { id: 1, indicator: "Peserta Didik Kelas X", category: "EMIS", region: "MAN 1 Lampung Selatan", period: "2025/2026 Genap", year: 2026, value: 92, unit: "siswa", source: "EMIS snapshot • 2025/2026 Genap" },
+    { id: 2, indicator: "Peserta Didik Kelas XI", category: "EMIS", region: "MAN 1 Lampung Selatan", period: "2025/2026 Genap", year: 2026, value: 121, unit: "siswa", source: "EMIS snapshot • 2025/2026 Genap" },
+    { id: 3, indicator: "Peserta Didik Kelas XII", category: "EMIS", region: "MAN 1 Lampung Selatan", period: "2025/2026 Genap", year: 2026, value: 88, unit: "siswa", source: "EMIS snapshot • 2025/2026 Genap" },
+    { id: 6, indicator: "PNS", category: "SIMPEG", region: "MAN 1 Lampung Selatan", period: "Snapshot 500 record pertama", year: 2026, value: 3, unit: "profil", source: "SIMPEG • snapshot parsial" },
     { id: 7, indicator: "PPPK", category: "SIMPEG", region: "MAN 1 Lampung Selatan", period: "Tahunan", year: 2026, value: 0, unit: "orang", source: "SIMPEG API / snapshot awal" },
     { id: 8, indicator: "Non-ASN", category: "SIMPEG", region: "MAN 1 Lampung Selatan", period: "Tahunan", year: 2026, value: 0, unit: "orang", source: "Belum tersedia pada endpoint SIMPEG" },
     { id: 9, indicator: "Pendidikan S2", category: "SIMPEG", region: "MAN 1 Lampung Selatan", period: "Tahunan", year: 2026, value: 1, unit: "orang", source: "SIMPEG API / snapshot awal" },
@@ -44,7 +44,7 @@ export const seedDashboardData: DashboardData = {
     { id: 11, indicator: "Pendidikan Diploma", category: "SIMPEG", region: "MAN 1 Lampung Selatan", period: "Tahunan", year: 2026, value: 0, unit: "orang", source: "SIMPEG API / snapshot awal" },
   ],
   chartSeries: [
-    { year: 2026, EMIS: 211, SIMPEG: 3 },
+    { year: 2026, EMIS: 301, SIMPEG: 3 },
   ],
   publications: [
     { id: 1, title: "Profil MAN 1 Lampung Selatan", description: "Identitas dan informasi satuan pendidikan di Wayurang, Kalianda.", date: "14 Juli 2026", category: "Profil Madrasah", fileLabel: "WEB" },
@@ -91,6 +91,16 @@ export const seedDashboardData: DashboardData = {
     website: "https://mansalase.sch.id",
     mapEmbedUrl: "https://www.google.com/maps?q=-5.6931,105.5824&z=16&output=embed",
   },
+  siteSettings: {
+    headerInstitutionName: "MAN 1 Lampung Selatan",
+    headerSubtitle: "Dashboard EMIS & SIMPEG",
+    heroTitle: "Dashboard MAN 1",
+    heroHighlight: "Lampung Selatan",
+    heroDescription: "Rekap profil sekolah dan siswa dari EMIS, dipadukan dengan profil dan statistik ASN dari SIMPEG untuk mendukung keputusan MAN 1 Lampung Selatan.",
+    footerTitle: "Dashboard MAN 1 Lampung Selatan",
+    footerSubtitle: "EMIS • SIMPEG • Satu Data Madrasah",
+    footerDescription: "Data dashboard diperbarui otomatis dari EMIS dan SIMPEG, kemudian disimpan sebagai snapshot aman pada database madrasah.",
+  },
   filters: { years: ["2026"], categories: ["EMIS", "SIMPEG"], regions: ["MAN 1 Lampung Selatan"] },
 };
 
@@ -101,9 +111,10 @@ export function clearDashboardDataCache() {
 }
 
 export async function getDashboardData(options: { integrate?: boolean } = {}): Promise<DashboardData> {
+  void options;
   await ensureDashboardSeeded();
 
-  const [indicators, rows, chartRows, publications, datasets, releaseSchedules, officeLocations, activities, videos, schedules, collections, items, contactRows, filterRows] = await Promise.all([
+  const [indicators, rows, chartRows, publications, datasets, releaseSchedules, officeLocations, activities, videos, schedules, collections, items, contactRows, settingsRows, filterRows] = await Promise.all([
     db.select().from(indicatorsTable).orderBy(asc(indicatorsTable.id)),
     db.select().from(dashboardRowsTable).orderBy(asc(dashboardRowsTable.id)),
     db.select().from(chartSeriesTable).orderBy(asc(chartSeriesTable.year)),
@@ -117,6 +128,7 @@ export async function getDashboardData(options: { integrate?: boolean } = {}): P
     db.select().from(awardCollectionsTable).orderBy(asc(awardCollectionsTable.sortOrder)),
     db.select().from(awardItemsTable).orderBy(asc(awardItemsTable.sortOrder)),
     db.select().from(contactInfoTable).limit(1),
+    db.select().from(siteSettingsTable).limit(1),
     db.select().from(filtersTable).orderBy(asc(filtersTable.sortOrder)),
   ]);
 
@@ -157,6 +169,16 @@ export async function getDashboardData(options: { integrate?: boolean } = {}): P
       website: contactRows[0].website,
       mapEmbedUrl: contactRows[0].mapEmbedUrl,
     } : seedDashboardData.contact,
+    siteSettings: settingsRows[0] ? {
+      headerInstitutionName: settingsRows[0].headerInstitutionName,
+      headerSubtitle: settingsRows[0].headerSubtitle,
+      heroTitle: settingsRows[0].heroTitle,
+      heroHighlight: settingsRows[0].heroHighlight,
+      heroDescription: settingsRows[0].heroDescription,
+      footerTitle: settingsRows[0].footerTitle,
+      footerSubtitle: settingsRows[0].footerSubtitle,
+      footerDescription: settingsRows[0].footerDescription,
+    } : seedDashboardData.siteSettings,
     filters: {
       years: filters.years.length ? filters.years : seedDashboardData.filters.years,
       categories: filters.categories.length ? filters.categories : seedDashboardData.filters.categories,
@@ -164,7 +186,7 @@ export async function getDashboardData(options: { integrate?: boolean } = {}): P
     },
   };
 
-  return options.integrate === false ? dashboardData : getIntegratedDashboardData(dashboardData);
+  return buildUnifiedDashboardData(dashboardData, await getIntegrationReadState());
 }
 
 export async function replaceDashboardData(data: DashboardData) {
@@ -172,7 +194,22 @@ export async function replaceDashboardData(data: DashboardData) {
   await clearDashboardTables();
   await insertDashboardData(data);
   clearDashboardDataCache();
-  clearIntegrationCache();
+}
+
+export async function updateDashboardPresentation(input: {
+  contact: ContactInfo;
+  siteSettings: SiteSettings;
+}) {
+  await ensureDatabaseReady();
+  const now = new Date().toISOString();
+  await db.insert(contactInfoTable).values({ id: 1, ...input.contact }).onConflictDoUpdate({
+    target: contactInfoTable.id,
+    set: input.contact,
+  });
+  await db.insert(siteSettingsTable).values({ id: 1, ...input.siteSettings, updatedAt: now }).onConflictDoUpdate({
+    target: siteSettingsTable.id,
+    set: { ...input.siteSettings, updatedAt: now },
+  });
 }
 
 async function ensureDashboardSeeded() {
@@ -181,12 +218,20 @@ async function ensureDashboardSeeded() {
     seedPromise = (async () => {
       const existing = await db.select().from(indicatorsTable).limit(1);
       const currentContact = await db.select().from(contactInfoTable).limit(1);
+      const currentSettings = await db.select().from(siteSettingsTable).limit(1);
       if (currentContact[0]?.institution === "MAN 1 Bandar Lampung") {
         await clearDashboardTables();
         await insertDashboardData(seedDashboardData);
         return;
       }
       if (!existing.length) await insertDashboardData(seedDashboardData);
+      if (!currentSettings.length) {
+        await db.insert(siteSettingsTable).values({
+          id: 1,
+          ...seedDashboardData.siteSettings,
+          updatedAt: new Date().toISOString(),
+        });
+      }
     })();
   }
   await seedPromise;
@@ -194,6 +239,7 @@ async function ensureDashboardSeeded() {
 
 async function clearDashboardTables() {
   await db.delete(filtersTable);
+  await db.delete(siteSettingsTable);
   await db.delete(contactInfoTable);
   await db.delete(videosTable);
   await db.delete(activitiesTable);
@@ -231,6 +277,7 @@ async function insertDashboardData(data: DashboardData) {
   }
 
   await db.insert(contactInfoTable).values({ id: 1, ...data.contact });
+  await db.insert(siteSettingsTable).values({ id: 1, ...data.siteSettings, updatedAt: new Date().toISOString() });
   const filterValues = [
     ...data.filters.years.map((value, index) => ({ kind: "year" as const, value, sortOrder: index })),
     ...data.filters.categories.map((value, index) => ({ kind: "category" as const, value, sortOrder: index })),

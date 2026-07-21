@@ -2,10 +2,11 @@
 
 ## Current project status
 
-Database `dashboard-man1-lamsel-prod` has been created in the Turso account
-`abdur0987`, its schema has been pushed, and the initial MAN 1 dataset has been
-seeded. Local development currently connects to this database through
-`.env.local`. Keep that file private and never commit its token.
+Database target is `dashboard-man1-lamsel-prod` in the Turso account
+`abdur0987`. It may appear as a branch of the previous database when it was
+created with `--from-db`; do not delete either database until deployment,
+snapshot migration, and rollback have been verified. Keep `.env.local` private
+and never commit its token.
 
 The previous `dashboard-man1-prod` database is retained temporarily as a
 rollback source. Do not delete it until the new connection has also been
@@ -46,27 +47,33 @@ TURSO_AUTH_TOKEN=...
 BETTER_AUTH_URL=https://your-production-domain.example
 BETTER_AUTH_SECRET=replace-with-a-long-random-secret
 NEXT_PUBLIC_BETTER_AUTH_URL=https://your-production-domain.example
+ADMIN_EMAILS=admin@example.org
 ```
 
 For local testing against Turso, place them in `.env.local`.
 
-## 3. Push schema
+## 3. Backup dan migrasi schema
 
-With the Turso variables available:
+Sebelum migrasi, export snapshot dan pastikan hasilnya lolos integrity check:
 
 ```bash
-npm run db:push
+turso db export dashboard-man1-lamsel-prod --output-file data/backups/dashboard-man1-lamsel-prod-pre-migrate.db
+sqlite3 data/backups/dashboard-man1-lamsel-prod-pre-migrate.db 'PRAGMA integrity_check;'
 ```
 
-For migration-file workflow:
+Kemudian jalankan migration-file workflow:
 
 ```bash
 npm run db:generate
 npm run db:migrate
 ```
 
-The app also runs an idempotent table check on startup, and the dashboard data is
-seeded automatically when the database is empty.
+Migration awal menggunakan `IF NOT EXISTS` agar aman pada database yang sudah
+memiliki tabel dashboard lama. Jangan memakai `db:push` untuk cutover produksi.
+
+The app also runs an idempotent table check on startup. Initial verified EMIS
+and SIMPEG observations are stored as aggregate snapshots when the snapshot
+tables are empty; no credential or raw upstream payload is stored.
 
 ## 4. Open Drizzle Studio
 

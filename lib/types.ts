@@ -159,6 +159,123 @@ export type ContactInfo = {
   mapEmbedUrl: string;
 };
 
+export type SiteSettings = {
+  headerInstitutionName: string;
+  headerSubtitle: string;
+  heroTitle: string;
+  heroHighlight: string;
+  heroDescription: string;
+  footerTitle: string;
+  footerSubtitle: string;
+  footerDescription: string;
+};
+
+export type DataSourceStatus = "fresh" | "stale" | "fallback" | "syncing" | "failed" | "not_configured";
+
+export type DashboardSourceState = {
+  code: "database" | "gis" | "website";
+  name: string;
+  status: DataSourceStatus;
+  enabled: boolean;
+  syncFrequency: string;
+  lastUpdated: string | null;
+  sourceUpdatedAt: string | null;
+  period: string | null;
+  recordCount: number | null;
+  coverage: number | null;
+  warnings: string[];
+  metrics: {
+    nsm: string | null;
+    npsn: string | null;
+    accreditation: string | null;
+    studentsTotal: number | null;
+    male: number | null;
+    female: number | null;
+    studyGroups: number | null;
+    employeesTotal: number | null;
+    teachersTotal: number | null;
+    staffTotal: number | null;
+  };
+};
+
+export type DataComparisonStatus = "match" | "mismatch" | "insufficient";
+
+export type DataComparisonRow = {
+  key: string;
+  label: string;
+  unit: string;
+  values: Record<"database" | "gis" | "website", string | number | null>;
+  status: DataComparisonStatus;
+};
+
+export type DataQualityAlert = {
+  id: string;
+  severity: "info" | "warning" | "critical";
+  title: string;
+  message: string;
+  metricKey?: string;
+};
+
+export type SyncRunSummary = {
+  id: string;
+  sourceCode: "emis" | "simpeg" | "mirror" | "gis" | "website";
+  triggerType: string;
+  startedAt: string;
+  finishedAt: string | null;
+  status: "queued" | "running" | "success" | "partial" | "failed";
+  recordsReceived: number;
+  recordsMatched: number;
+  errorSummary: string | null;
+};
+
+export type DashboardIntegrationState = {
+  generatedAt: string;
+  profile: {
+    name: string;
+    nsm: string;
+    npsn: string;
+    status: string | null;
+    accreditation: string | null;
+  };
+  sources: DashboardSourceState[];
+  comparisons: DataComparisonRow[];
+  alerts: DataQualityAlert[];
+  recentRuns: SyncRunSummary[];
+  emis: {
+    sourceCode: "emis" | "mirror" | "gis" | "website" | null;
+    sourceName: string;
+    period: string;
+    schoolYear: string;
+    semester: string;
+    students: {
+      total: number | null;
+      grade10: number | null;
+      grade11: number | null;
+      grade12: number | null;
+      male: number | null;
+      female: number | null;
+    };
+    studyGroups: { total: number | null };
+    warnings: string[];
+  } | null;
+  simpeg: {
+    sourceCode: "simpeg" | "mirror" | "gis" | "website" | null;
+    sourceName: string;
+    complete: boolean;
+    period: string;
+    identifiedProfiles: number | null;
+    employeesTotal: number | null;
+    teachersTotal: number | null;
+    staffTotal: number | null;
+    upstreamTotal: number | null;
+    recordsReceived: number;
+    pageCount: number;
+    coverage: number;
+    certificationAvailable: boolean;
+    warnings: string[];
+  } | null;
+};
+
 export type DashboardData = {
   indicators: Indicator[];
   rows: DashboardRow[];
@@ -174,9 +291,11 @@ export type DashboardData = {
   executiveSchedules: ExecutiveSchedule[];
   awardCollections: AwardCollection[];
   contact: ContactInfo;
+  siteSettings: SiteSettings;
   filters: {
     years: string[];
     categories: string[];
     regions: string[];
   };
+  integration?: DashboardIntegrationState;
 };
